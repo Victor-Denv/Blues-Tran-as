@@ -1,10 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, where, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// --- SEU NÚMERO (Para onde o resumo será enviado) ---
-const MEU_NUMERO = "557184722564"; 
-// ----------------------------------------------------
+// --- SEU NÚMERO NOVO ---
+const MEU_NUMERO = "557581079652"; 
+// -----------------------
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQyjnobWfFqYttYOrQ3xoTRq5PutOi38A",
@@ -74,7 +74,7 @@ function alternarTela(logado) {
     }
 }
 
-// --- FUNÇÕES DO DASHBOARD ---
+// --- FUNÇÕES GERAIS ---
 
 function formatDataBR(dataString) {
     if(!dataString) return "Inválido";
@@ -82,7 +82,8 @@ function formatDataBR(dataString) {
     return new Date(dataObj.valueOf() + dataObj.getTimezoneOffset() * 60000).toLocaleDateString('pt-BR');
 }
 
-// Variável global para guardar o texto do resumo
+// --- FUNÇÕES DE AGENDA (CLIENTES) ---
+
 let textoResumoGlobal = "";
 
 window.enviarResumoZap = function() {
@@ -91,11 +92,33 @@ window.enviarResumoZap = function() {
     window.open(link, '_blank');
 }
 
+window.enviarLembrete = function(telefone, nome, horario, servico) {
+    const telLimpo = telefone.replace(/\D/g, '');
+    const mensagem = `Oie ${nome}! 💙\nPassando pra lembrar do nosso horário *amanhã às ${horario}* para fazer *${servico}*.\n\nConfirma pra mim se tá tudo certo? 🥰`;
+    const link = `https://wa.me/55${telLimpo}?text=${encodeURIComponent(mensagem)}`;
+    window.open(link, '_blank');
+}
+
 window.mudarAba = function(status) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    if(status === 'agendado') document.getElementById('tabAgendados').classList.add('active');
-    else document.getElementById('tabHistorico').classList.add('active');
-    window.carregarDados(status);
+    
+    const areaLista = document.getElementById('listaAgendamentos');
+    const areaConfig = document.getElementById('areaConfig');
+
+    if(status === 'config') {
+        document.getElementById('tabConfig').classList.add('active');
+        areaLista.style.display = 'none';
+        areaConfig.style.display = 'block';
+        window.carregarDiasLiberados(); 
+    } else {
+        areaConfig.style.display = 'none';
+        areaLista.style.display = 'block';
+        
+        if(status === 'agendado') document.getElementById('tabAgendados').classList.add('active');
+        else document.getElementById('tabHistorico').classList.add('active');
+        
+        window.carregarDados(status);
+    }
 }
 
 window.confirmarPix = async function(id) {
@@ -118,13 +141,87 @@ window.concluirAgendamento = async function(id) {
     }
 }
 
+// --- FUNÇÕES DE CONFIGURAÇÃO (LIBERAR DIAS) ---
+
+window.adicionarDia = async function() {
+    const data = document.getElementById('dataConfig').value;
+    const local = document.getElementById('localConfig').value;
+
+    if (!data) return alert("Escolha uma data!");
+
+    try {
+        await setDoc(doc(db, "disponibilidade", data), {
+            data: data,
+            local: local
+        });
+        alert("Dia liberado com sucesso!");
+        window.carregarDiasLiberados();
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao liberar data.");
+    }
+}
+
+window.removerDia = async function(dataId) {
+    if(confirm("Bloquear este dia novamente (Folga)?")) {
+        try {
+            await deleteDoc(doc(db, "disponibilidade", dataId));
+            window.carregarDiasLiberados();
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao remover.");
+        }
+    }
+}
+
+window.carregarDiasLiberados = async function() {
+    const div = document.getElementById('listaDiasLiberados');
+    div.innerHTML = '<p style="color:#888;">Carregando...</p>';
+
+    try {
+        const q = query(collection(db, "disponibilidade"), orderBy("data"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            div.innerHTML = '<p style="color:#aaa;">Nenhum dia liberado. A agenda está fechada.</p>';
+            return;
+        }
+
+        let html = "";
+        querySnapshot.forEach((docSnap) => {
+            const dados = docSnap.data();
+            const dataBR = new Date(dados.data + "T00:00:00").toLocaleDateString('pt-BR');
+            
+            // Azul para Camaçari, Laranja para Feira
+            const corBorda = dados.local.includes("Camaçari") ? "#06b6d4" : "#f59e0b"; 
+
+            html += `
+                <div class="admin-card" style="border-left: 5px solid ${corBorda}; display:flex; justify-content:space-between; align-items:center; padding:15px;">
+                    <div>
+                        <h4 style="color:#fff;">${dataBR}</h4>
+                        <span style="color:${corBorda}; font-size:0.9rem;">📍 ${dados.local}</span>
+                    </div>
+                    <button onclick="removerDia('${docSnap.id}')" style="background:transparent; border:1px solid #ef4444; color:#ef4444; padding:5px 10px; border-radius:5px; cursor:pointer;">
+                        Bloquear
+                    </button>
+                </div>
+            `;
+        });
+        div.innerHTML = html;
+    } catch (e) {
+        console.error(e);
+        div.innerHTML = "Erro ao carregar.";
+    }
+}
+
+// --- CARREGAR AGENDAMENTOS ---
+
 window.carregarDados = async function(statusFiltro = 'agendado') {
     const listaDiv = document.getElementById('listaAgendamentos');
     if (!listaDiv || !auth.currentUser) return;
 
     listaDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><span class="material-icons" style="font-size: 40px; color: #3b82f6; animation: spin 1s infinite;">autorenew</span></div>';
 
-    // --- CÁLCULO DA DATA DE AMANHÃ ---
     const hoje = new Date();
     const amanha = new Date();
     amanha.setDate(hoje.getDate() + 1);
@@ -134,7 +231,6 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
     const dia = String(amanha.getDate()).padStart(2, '0');
     const stringAmanha = `${ano}-${mes}-${dia}`;
     const dataAmanhaBR = amanha.toLocaleDateString('pt-BR');
-    // ----------------------------------
 
     try {
         const q = query(collection(db, "agendamentos"), where("status", "==", statusFiltro), orderBy("data"), orderBy("horario"));
@@ -149,7 +245,6 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
         let ultimaData = "";
         let cardsBuffer = "";
         
-        // Preparação do Resumo
         let listaAmanha = [];
         textoResumoGlobal = "";
 
@@ -165,9 +260,13 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
             const dataBR = formatDataBR(dados.data);
             const periodo = dados.periodo ? dados.periodo.toUpperCase() : "";
             
-            // Se for amanhã, adiciona na lista de resumo
+            let btnLembrete = "";
             if (dados.data === stringAmanha && statusFiltro === 'agendado') {
                 listaAmanha.push(`⏰ *${horario}* - ${nome} (${servico})`);
+                btnLembrete = `
+                <button onclick="enviarLembrete('${dados.telefone}', '${nome}', '${horario}', '${servico}')" class="btn-lembrete">
+                    🔔 Enviar Lembrete (Amanhã)
+                </button>`;
             }
 
             const isPixOk = dados.pixConfirmado === true;
@@ -195,6 +294,7 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
                     <div class="card-body">
                         <div class="client-name">${nome}</div>
                         <span class="service-name">${servico}</span>
+                        ${btnLembrete}
                         ${pixElement}
                         <div class="info-row" style="margin-top:10px;"><span class="material-icons small">place</span>${dados.endereco || '-'}</div>
                         <div class="info-row"><span class="material-icons small">phone</span>${dados.telefone || '-'}</div>
@@ -207,7 +307,6 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
             `;
         });
 
-        // Constrói o botão de resumo se houver itens para amanhã
         let botaoResumoHTML = "";
         if (listaAmanha.length > 0) {
             textoResumoGlobal = `📅 *Agenda de Amanhã (${dataAmanhaBR})*:\n\n${listaAmanha.join('\n')}\n\n💙 _Blues Afrotrancas_`;
@@ -221,8 +320,6 @@ window.carregarDados = async function(statusFiltro = 'agendado') {
         }
 
         htmlFinal += `<div class="cards-grid">${cardsBuffer}</div>`;
-        
-        // Adiciona o botão no topo da lista
         listaDiv.innerHTML = botaoResumoHTML + htmlFinal;
 
     } catch (error) {

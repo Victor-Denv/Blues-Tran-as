@@ -14,7 +14,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const PHONE_NUMBER = "557184722564"; 
+// Procure onde está PHONE_NUMBER e deixe assim:
+const PHONE_NUMBER = "557581079652";
 
 // Elementos
 const serviceSelect = document.getElementById('serviceSelect');
@@ -138,7 +139,7 @@ timeSlot.addEventListener('change', function() {
     if(this.value) btnSend.disabled = false;
 });
 
-// Enviar
+// Enviar Agendamento
 btnSend.addEventListener('click', async function() {
     const nome = document.getElementById('clientName').value;
     const tel = document.getElementById('clientPhone').value;
@@ -176,7 +177,7 @@ btnSend.addEventListener('click', async function() {
             servico: serviceName,
             valor: price,
             status: "agendado",
-            pixConfirmado: false, // NOVO CAMPO
+            pixConfirmado: false,
             criadoEm: new Date().toISOString()
         });
 
@@ -200,3 +201,74 @@ btnSend.addEventListener('click', async function() {
         btnSend.disabled = false;
     }
 });
+
+// --- FUNÇÕES DE CONSULTA (MODAL) ---
+
+window.abrirModal = function() {
+    document.getElementById('modalConsulta').style.display = 'flex';
+}
+
+window.fecharModal = function() {
+    document.getElementById('modalConsulta').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('modalConsulta');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+window.buscarAgendamentos = async function() {
+    const telefoneInput = document.getElementById('searchPhone').value;
+    const resultadoDiv = document.getElementById('resultadoBusca');
+    
+    if(!telefoneInput) { alert("Digite seu número!"); return; }
+
+    resultadoDiv.innerHTML = '<p style="color:#aaa; text-align:center;">Buscando...</p>';
+
+    try {
+        const q = query(collection(db, "agendamentos"), where("telefone", "==", telefoneInput), where("status", "==", "agendado"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            resultadoDiv.innerHTML = '<p style="color:#fca5a5; text-align:center;">Nenhum agendamento encontrado para este número. Verifique se digitou igual ao cadastro.</p>';
+            return;
+        }
+
+        let html = "";
+
+        querySnapshot.forEach((doc) => {
+            const dados = doc.data();
+            const dataObj = new Date(dados.data);
+            const dataBR = new Date(dataObj.valueOf() + dataObj.getTimezoneOffset() * 60000).toLocaleDateString('pt-BR');
+            
+            let statusHtml = "";
+            let classeBorda = "";
+
+            if(dados.pixConfirmado) {
+                statusHtml = `<span class="status-badge badge-verde">✅ Confirmado</span>`;
+                classeBorda = "confirmado";
+            } else {
+                statusHtml = `<span class="status-badge badge-amarelo">🟡 Aguardando Sinal (PIX)</span>
+                              <p style="font-size:0.8rem; color:#ccc; margin-top:5px;">O admin ainda não confirmou o pagamento.</p>`;
+                classeBorda = "pendente";
+            }
+
+            html += `
+                <div class="status-card ${classeBorda}">
+                    ${statusHtml}
+                    <h4 style="color:#fff; margin: 5px 0;">${dados.servico}</h4>
+                    <p style="color:#ccc;">📅 ${dataBR} às ${dados.horario}</p>
+                    <p style="color:#888; font-size:0.9rem;">Valor Total: ${dados.valor.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</p>
+                </div>
+            `;
+        });
+
+        resultadoDiv.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+        resultadoDiv.innerHTML = '<p>Erro ao buscar.</p>';
+    }
+}

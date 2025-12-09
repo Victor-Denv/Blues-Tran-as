@@ -9,54 +9,66 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         /* CSS ESPECÍFICO DO ADMIN */
-        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
         .tab-btn {
             background: transparent; border: 1px solid var(--primary-blue); color: #fff;
             padding: 10px 30px; border-radius: 50px; cursor: pointer; transition: 0.3s;
+            margin-bottom: 5px;
         }
         .tab-btn.active {
             background: var(--primary-blue); color: white; box-shadow: 0 0 15px var(--primary-blue);
         }
+        
+        /* Botão PIX */
         .btn-pix {
             width: 100%; padding: 8px; border: 1px solid #10b981; background: rgba(16, 185, 129, 0.1);
             color: #10b981; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 5px;
             transition: 0.3s;
         }
         .btn-pix:hover { background: #10b981; color: white; }
+
+        /* Badge PIX OK */
         .badge-pix {
             background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 8px;
             border-radius: 8px; text-align: center; font-weight: bold; font-size: 0.9rem;
             border: 1px solid #10b981; margin-bottom: 5px;
         }
+        
         .border-green { border-color: #10b981 !important; }
+
         .btn-concluir {
             width: 100%; margin-top: 5px; padding: 10px; border: none; border-radius: 8px;
             background: #2d3748; color: #a0aec0; cursor: pointer; font-weight: bold; transition:0.3s;
         }
         .btn-concluir:hover { background: var(--primary-blue); color: white; }
-        /* Botão de Resumo para a Trancista */
-.btn-resumo-trancista {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-    transition: 0.3s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
 
-.btn-resumo-trancista:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-}
+        /* Botão Lembrete (Cliente) */
+        .btn-lembrete {
+            width: 100%; padding: 8px;
+            background: linear-gradient(45deg, #8b5cf6, #d946ef);
+            color: white; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+            transition: 0.3s; animation: pulse 2s infinite;
+        }
+        .btn-lembrete:hover { transform: scale(1.02); }
+
+        /* Botão Resumo (Trancista) */
+        .btn-resumo-trancista {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-resumo-trancista:hover { transform: translateY(-2px); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
     </style>
 </head>
 <body>
@@ -82,10 +94,39 @@
             <div class="tabs">
                 <button class="tab-btn active" onclick="mudarAba('agendado')" id="tabAgendados">Próximos</button>
                 <button class="tab-btn" onclick="mudarAba('concluido')" id="tabHistorico">Histórico</button>
+                <button class="tab-btn" onclick="mudarAba('config')" id="tabConfig">📅 Gerenciar Agenda</button>
             </div>
 
             <div id="listaAgendamentos">
                 <p style="text-align: center; color: #888;">Carregando...</p>
+            </div>
+
+            <div id="areaConfig" style="display: none;">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <span class="price-tag" style="color:white">Liberar Data na Agenda</span>
+                    </div>
+                    <div class="card-body">
+                        <p style="color:#ccc; margin-bottom:10px; font-size:0.9rem;">
+                            1. Escolha a data.<br>
+                            2. Defina a cidade.<br>
+                            3. Clique em liberar.<br>
+                            <em style="color:#666;">*Dias não cadastrados são considerados Folga automaticamente.</em>
+                        </p>
+                        <div class="input-row" style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <input type="date" id="dataConfig" style="flex:1;">
+                            <select id="localConfig" style="flex:1;">
+                                <option value="Camaçari - BA">Camaçari - BA</option>
+                                <option value="Feira de Santana - BA">Feira de Santana - BA</option>
+                            </select>
+                        </div>
+                        <button onclick="adicionarDia()" class="btn-login" style="margin-top:10px; background: var(--success);">✅ Liberar Dia</button>
+                    </div>
+                </div>
+
+                <h3 class="section-title">Dias Liberados</h3>
+                <div id="listaDiasLiberados" class="cards-grid">
+                    </div>
             </div>
         </div>
     </div>

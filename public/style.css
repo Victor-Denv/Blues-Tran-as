@@ -77,14 +77,73 @@ body {
 }
 .btn-hero:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
 
+/* --- BOTÃO DE CONSULTAR NO TOPO --- */
+.btn-consultar {
+    background: rgba(255,255,255,0.1);
+    color: var(--neon-blue);
+    border: 1px solid var(--neon-blue);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+.btn-consultar:hover { background: var(--neon-blue); color: #000; }
+
+/* --- MODAL (JANELA FLUTUANTE) --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #0f172a;
+    border: 1px solid var(--primary-blue);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%; max-width: 400px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+.close-btn {
+    position: absolute; top: 10px; right: 15px;
+    color: #fff; font-size: 2rem; cursor: pointer;
+}
+
+.search-box { display: flex; gap: 10px; margin-top: 15px; }
+.search-box input { margin-bottom: 0; }
+.search-box button {
+    background: var(--primary-blue); color: white; border: none;
+    padding: 0 20px; border-radius: 10px; cursor: pointer; font-weight: bold;
+}
+
+/* --- CARD DE RESULTADO --- */
+.status-card {
+    background: rgba(255,255,255,0.05);
+    padding: 15px; margin-top: 15px; border-radius: 10px;
+    border-left: 4px solid #555; text-align: left;
+}
+.status-card.confirmado { border-left-color: #10b981; }
+.status-card.pendente { border-left-color: #facc15; }
+
+.status-badge {
+    display: inline-block; padding: 4px 10px; border-radius: 5px;
+    font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;
+}
+.badge-verde { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.badge-amarelo { background: rgba(250, 204, 21, 0.2); color: #facc15; }
+
 /* --- CONTAINER DE VIDRO (FORMULÁRIO) --- */
 .container {
     max-width: 500px;
     margin: 0 auto 50px;
     padding: 30px;
     border-radius: 20px;
-    
-    /* Glassmorphism */
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(15px);
@@ -121,7 +180,6 @@ input:focus, select:focus {
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
-/* Customização para inputs de data/hora ficarem bonitos no dark mode */
 input[type="date"], input[type="time"] { color-scheme: dark; }
 
 .input-row { display: flex; gap: 10px; }
@@ -162,16 +220,10 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
 footer { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.8rem; }
 footer a { color: var(--primary-blue); text-decoration: none; }
 
-/* =========================================
-   ESTILOS ESPECÍFICOS DO ADMIN (DARK MODE)
-   ========================================= */
-
-/* Tela de Login */
+/* --- ADMIN STYLES --- */
 .login-wrapper {
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
     background: radial-gradient(circle, #1e3a8a33, #000);
 }
 .login-card {
@@ -191,7 +243,6 @@ footer a { color: var(--primary-blue); text-decoration: none; }
 }
 .btn-login:hover { background: var(--neon-blue); color: #000; }
 
-/* Dashboard Header */
 .dashboard-header {
     background: rgba(5, 5, 17, 0.9);
     backdrop-filter: blur(10px);
@@ -207,7 +258,6 @@ footer a { color: var(--primary-blue); text-decoration: none; }
 }
 .btn-logout:hover { background: var(--error); color: white; }
 
-/* Dashboard Cards */
 .section-title {
     color: var(--neon-blue);
     border-left: 4px solid var(--primary-blue);
@@ -252,3 +302,25 @@ footer a { color: var(--primary-blue); text-decoration: none; }
     transition: 0.2s;
 }
 .btn-whatsapp-card:hover { background: #25D366; color: #000; }
+
+/* =======================================================
+   📱 MODO MOBILE (ADAPTAR PARA CELULARES)
+   ======================================================= */
+@media (max-width: 768px) {
+    body { overflow-x: hidden; padding-bottom: 20px; }
+    .hero h1 { font-size: 2.2rem; line-height: 1.2; }
+    .hero p { font-size: 0.9rem; padding: 0 10px; }
+    .container { width: 92%; margin: 0 auto 30px; padding: 20px; }
+    .input-row { flex-direction: column; gap: 0; }
+    .input-row input, .input-row select { width: 100%; margin-bottom: 10px; }
+    input, select, button { font-size: 16px !important; padding: 14px; }
+    .login-card { width: 90%; padding: 25px; }
+    .dashboard-header { padding: 15px; flex-direction: row; align-items: center; }
+    .logo-area h2 { font-size: 1rem; }
+    .tabs { gap: 10px; }
+    .tab-btn { padding: 8px 20px; font-size: 0.9rem; width: 45%; }
+    .cards-grid { grid-template-columns: 1fr; display: block; }
+    .admin-card { width: 100%; margin-bottom: 15px; }
+    .btn-resumo-trancista { font-size: 0.9rem; padding: 12px; }
+    .bg-glow { opacity: 0.2; width: 300px; height: 300px; }
+}

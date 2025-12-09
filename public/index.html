@@ -16,6 +16,9 @@
     <header class="hero">
         <div class="hero-content">
             <div class="logo">BLUES<span>AFROTRANCAS</span></div>
+            
+            <button onclick="abrirModal()" class="btn-consultar">🔎 Ver meus Agendamentos</button>
+            
             <h1>Sua coroa, nossa arte.</h1>
             <p>Especialistas em tranças e autoestima.</p>
             <a href="#agendamento" class="btn-hero">Agendar Agora</a>
@@ -130,6 +133,22 @@
             <button class="btn-whatsapp" id="btnSend" disabled>
                 Verificar e Agendar
             </button>
+        </div>
+    </div>
+
+    <div id="modalConsulta" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-effect">
+            <span onclick="fecharModal()" class="close-btn">&times;</span>
+            <h3>Meus Agendamentos 📅</h3>
+            <p>Digite seu WhatsApp para ver o status:</p>
+            
+            <div class="search-box">
+                <input type="tel" id="searchPhone" placeholder="Seu WhatsApp (com DDD)">
+                <button onclick="buscarAgendamentos()">Buscar</button>
+            </div>
+
+            <div id="resultadoBusca" class="results-area">
+                </div>
         </div>
     </div>
 
