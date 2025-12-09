@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Blues Afrotrancas</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-card">
+            <h2>Blues Afrotrancas</h2>
+            <p>Acesso restrito à administração</p>
+            <input type="password" id="adminPass" class="login-input" placeholder="Digite sua senha">
+            <button onclick="entrar()" class="btn-login">Acessar Painel</button>
+        </div>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+        
+        <header class="dashboard-header">
+            <div class="logo-area">
+                <h2>Agenda Blues 💙</h2>
+            </div>
+            <button onclick="sair()" class="btn-logout">Sair</button>
+        </header>
+
+        <div class="dashboard-container">
+            <div id="listaAgendamentos">
+                <p style="text-align: center; color: #888; margin-top: 50px;">Carregando sua agenda...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="admin.js"></script>
+
+    <script>
+        // Função simples de Login
+        function entrar() {
+            const senha = document.getElementById('adminPass').value;
+            // SENHA: blues123
+            if(senha === 'blues123') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                if(window.carregarDados) window.carregarDados();
+            } else {
+                alert('Senha incorreta! Tente novamente.');
+            }
+        }
+
+        function sair() {
+            window.location.reload();
+        }
+
+        // Permite dar Enter na senha
+        document.getElementById('adminPass').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') entrar();
+        });
+    </script>
+</body>
+</html>
