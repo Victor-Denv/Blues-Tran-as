@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blues Afrotrancas | Agendamento Premium</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <div class="bg-glow one"></div>
+    <div class="bg-glow two"></div>
+
+    <header class="hero">
+        <div class="hero-content">
+            <div class="logo">BLUES<span>AFROTRANCAS</span></div>
+            <h1>Sua coroa, nossa arte.</h1>
+            <p>Especialistas em tranças e autoestima.</p>
+            <a href="#agendamento" class="btn-hero">Agendar Agora</a>
+        </div>
+    </header>
+
+    <div class="container glass-effect" id="agendamento">
+        <div class="form-header">
+            <h2>Faça seu Agendamento</h2>
+            <p>Preencha os dados e escolha seu estilo</p>
+        </div>
+
+        <div class="content">
+            <div id="dateAlert" class="alert-box" style="display: none;"></div>
+
+            <div class="step">
+                <label class="step-title"><span class="material-icons">person</span> Seus Dados</label>
+                <div class="input-group-col">
+                    <input type="text" id="clientName" placeholder="Nome Completo" required>
+                    <input type="tel" id="clientPhone" placeholder="WhatsApp (com DDD)" required>
+                    
+                    <select id="clientAddress" required>
+                        <option value="">Onde você mora?</option>
+                        <option value="Feira de Santana - BA">Feira de Santana - BA</option>
+                        <option value="Camaçari - BA">Camaçari - BA</option>
+                    </select>
+                </div>
+                
+                <label class="label-small">Quando foi seu último procedimento?</label>
+                <input type="date" id="lastProcedureDate" required>
+                <p style="font-size: 0.75rem; color: #aaa; margin-top: 5px;">*O cabelo deve estar lavado e sem creme no dia.</p>
+            </div>
+
+            <div class="step">
+                <label class="step-title"><span class="material-icons">face</span> Escolha o Estilo</label>
+                <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">A duração define a disponibilidade na agenda.</p>
+                
+                <div class="custom-select-wrapper">
+                    <select id="serviceSelect">
+                        <option value="0" data-tipo="">Selecione o estilo...</option>
+                        
+                        <optgroup label="Nagô Simples & Masculina (~3h)">
+                            <option value="40" data-tipo="curto">Nagô Lateral (Fem) - R$ 40,00</option>
+                            <option value="50" data-tipo="curto">Nagô Tiara (Fem) - R$ 50,00</option>
+                            <option value="35" data-tipo="curto">Nagô Topo (Fem) - R$ 35,00</option>
+                            <option value="95" data-tipo="curto">Nagô Masc. c/ Jumbo - R$ 95,00</option>
+                            <option value="80" data-tipo="curto">Nagô Masc. s/ Jumbo - R$ 80,00</option>
+                            <option value="95" data-tipo="curto">Boxeadora (2 tranças) - R$ 95,00</option>
+                        </optgroup>
+
+                        <optgroup label="Nagô Desenhada / Complexa (6h+)">
+                            <option value="160" data-tipo="longo">Channa c/ Jumbo - R$ 160,00</option>
+                            <option value="90" data-tipo="curto">Channa s/ Jumbo (Rápida) - R$ 90,00</option>
+                            <option value="180" data-tipo="longo">Mohawk Braids (Moicano) - R$ 180,00</option>
+                            <option value="180" data-tipo="longo">Fulani Braids - R$ 180,00</option>
+                        </optgroup>
+    
+                        <optgroup label="Tranças Soltas (Dia Inteiro)">
+                            <option value="190" data-tipo="longo">Box Braids (Com nó) - R$ 190,00</option>
+                            <option value="190" data-tipo="longo">Knotless Braids (Sem nó) - R$ 190,00</option>
+                            <option value="160" data-tipo="longo">Chanel - R$ 160,00</option>
+                            <option value="200" data-tipo="longo">Gipsy / Goddess Braids - R$ 200,00</option>
+                        </optgroup>
+    
+                        <optgroup label="Locs & Outros">
+                            <option value="85" data-tipo="curto">Manutenção Locs (Retwist) - R$ 85,00</option>
+                            <option value="90" data-tipo="curto">Twist / Start Locs - R$ 90,00</option>
+                            <option value="130" data-tipo="longo">Faux Locs Individuais - R$ 130,00</option>
+                            <option value="180" data-tipo="longo">Entrelace - R$ 180,00</option>
+                            <option value="130" data-tipo="curto">Crochet Braids - R$ 130,00</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="step">
+                <label class="step-title"><span class="material-icons">event</span> Data e Horário</label>
+                <div class="input-row">
+                    <input type="date" id="dateInput" required disabled>
+                    <select id="timeSlot" disabled style="min-width: 140px;">
+                        <option value="">Data...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="step id-hidden" id="paymentSection" style="display:none;">
+                <label class="step-title"><span class="material-icons">payments</span> Pagamento do Sinal</label>
+                <div class="summary-card">
+                    <div class="price-row">
+                        <span>Valor Total:</span>
+                        <span id="fullPrice" class="neon-text">R$ 0,00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Sinal (30%):</span>
+                        <span id="depositPrice" style="color: #25D366; font-weight: bold;">R$ 0,00</span>
+                    </div>
+                    
+                    <div class="pix-note" style="margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                        <p style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0;">
+                            ✨ <strong>Como funciona:</strong> O sinal garante sua vaga e 
+                            <strong>já é descontado do valor total</strong>. 
+                            O restante você paga no dia.
+                        </p>
+                        <p style="font-size: 0.8rem; margin-top: 8px; color: #94a3b8;">
+                            📅 <strong>Remarcação:</strong> Avise com antecedência para não perder o sinal. 
+                            Em caso de desistência sem aviso, o valor não é estornado.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-whatsapp" id="btnSend" disabled>
+                Verificar e Agendar
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Blues Afrotrancas. <a href="admin.html">Área Restrita</a></p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
