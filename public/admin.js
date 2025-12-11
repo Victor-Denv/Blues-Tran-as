@@ -1,8 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, where, doc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, where, doc, updateDoc, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-const MEU_NUMERO = "557581079652"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyCQyjnobWfFqYttYOrQ3xoTRq5PutOi38A",
@@ -18,12 +16,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// --- Elementos ---
+let calendarMain; 
+let calendarHistory; 
+let agendamentoSelecionado = {}; 
+
 const loginScreen = document.getElementById('loginScreen');
 const dashboard = document.getElementById('dashboard');
 const btnLogin = document.querySelector('.btn-login');
 
-// --- AUTENTICAÇÃO ---
 onAuthStateChanged(auth, (user) => {
     if (user) { alternarTela(true); } else { alternarTela(false); }
 });
@@ -45,251 +45,363 @@ function alternarTela(logado) {
     if (logado) {
         loginScreen.style.display = 'none';
         dashboard.style.display = 'block';
-        window.carregarDados('agendado');
+        window.mudarAba('agendado', document.querySelector('.nav-btn.active'));
     } else {
         loginScreen.style.display = 'flex';
         dashboard.style.display = 'none';
     }
 }
 
-function formatDataBR(dataString) {
-    if(!dataString) return "Inválido";
-    const dataObj = new Date(dataString);
-    return new Date(dataObj.valueOf() + dataObj.getTimezoneOffset() * 60000).toLocaleDateString('pt-BR');
+window.mudarAba = function(nomeAba, btnElement) {
+    document.getElementById('tabAgendados').style.display = 'none';
+    document.getElementById('tabHistorico').style.display = 'none';
+    document.getElementById('tabConfig').style.display = 'none';
+
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    if(btnElement) btnElement.classList.add('active');
+
+    if (nomeAba === 'agendado') {
+        document.getElementById('tabAgendados').style.display = 'block';
+        if (!calendarMain) iniciarCalendarioPrincipal(); 
+        else setTimeout(() => calendarMain.render(), 100); 
+    } 
+    else if (nomeAba === 'historico') {
+        document.getElementById('tabHistorico').style.display = 'block';
+        window.carregarHistoricoLista(); 
+        if (!calendarHistory) iniciarCalendarioHistorico(); 
+        else {
+            calendarHistory.refetchEvents(); 
+            setTimeout(() => calendarHistory.render(), 100);
+        }
+    } 
+    else if (nomeAba === 'config') {
+        document.getElementById('tabConfig').style.display = 'block';
+        window.carregarDiasLiberados();
+    }
 }
 
-// --- FUNÇÕES DE AGENDA ---
-let textoResumoGlobal = "";
+function iniciarCalendarioPrincipal() {
+    const calendarEl = document.getElementById('calendar');
+    calendarMain = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        height: 'auto',
+        headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
+        
+        eventContent: function(arg) {
+            let classePix = arg.event.extendedProps.pixConfirmado ? "border-green-500" : "border-blue-500";
+            let icone = arg.event.extendedProps.pixConfirmado ? "✅" : "";
+            return {
+                html: `
+                    <div class="evento-tag" style="${arg.event.extendedProps.pixConfirmado ? 'border-left-color: #10b981;' : ''}">
+                        <span class="evento-hora">${arg.event.extendedProps.horario}</span>
+                        <span class="evento-nome">${icone} ${arg.event.extendedProps.cliente}</span>
+                    </div>
+                `
+            }
+        },
 
-window.enviarResumoZap = function() {
-    if(!textoResumoGlobal) return;
-    const link = `https://wa.me/${MEU_NUMERO}?text=${encodeURIComponent(textoResumoGlobal)}`;
-    window.open(link, '_blank');
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const q = query(collection(db, "agendamentos"), where("status", "==", "agendado"));
+                const querySnapshot = await getDocs(q);
+                let eventos = [];
+                querySnapshot.forEach((doc) => {
+                    const dados = doc.data();
+                    eventos.push({
+                        id: doc.id,
+                        title: dados.cliente,
+                        start: `${dados.data}T${dados.horario}`,
+                        extendedProps: { ...dados, docStatus: 'agendado' }
+                    });
+                });
+                successCallback(eventos);
+            } catch (e) { failureCallback(e); }
+        },
+        eventClick: function(info) { 
+            abrirModalDetalhes(
+                info.event.extendedProps.cliente,
+                info.event.extendedProps.servico,
+                info.event.start.toLocaleDateString('pt-BR'),
+                info.event.extendedProps.horario,
+                info.event.extendedProps.celular || info.event.extendedProps.telefone,
+                info.event.id,
+                info.event.extendedProps.pixConfirmado,
+                'agendado' // STATUS ATUAL
+            ); 
+        }
+    });
+    calendarMain.render();
 }
 
-window.enviarLembrete = function(telefone, nome, horario, servico) {
-    const telLimpo = telefone.replace(/\D/g, '');
-    const mensagem = `Oie ${nome}! 💙\nPassando pra lembrar do nosso horário *amanhã às ${horario}* para fazer *${servico}*.\n\nConfirma pra mim se tá tudo certo? 🥰`;
-    const link = `https://wa.me/55${telLimpo}?text=${encodeURIComponent(mensagem)}`;
-    window.open(link, '_blank');
+function iniciarCalendarioHistorico() {
+    const calendarEl = document.getElementById('calendar-history');
+    calendarHistory = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        height: 'auto',
+        headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const q = query(collection(db, "agendamentos"), where("status", "==", "concluido"));
+                const querySnapshot = await getDocs(q);
+                let eventos = [];
+                querySnapshot.forEach((doc) => {
+                    const dados = doc.data();
+                    eventos.push({
+                        id: doc.id,
+                        title: `✅ ${dados.cliente}`,
+                        start: `${dados.data}T${dados.horario}`,
+                        backgroundColor: '#3b82f6', borderColor: '#3b82f6',
+                        extendedProps: { ...dados, docStatus: 'concluido' }
+                    });
+                });
+                successCallback(eventos);
+            } catch (e) { failureCallback(e); }
+        },
+        eventClick: function(info) { 
+            // Permite ver detalhes do histórico também
+            abrirModalDetalhes(
+                info.event.extendedProps.cliente,
+                info.event.extendedProps.servico,
+                info.event.start.toLocaleDateString('pt-BR'),
+                info.event.extendedProps.horario,
+                info.event.extendedProps.celular || info.event.extendedProps.telefone,
+                info.event.id,
+                info.event.extendedProps.pixConfirmado,
+                'concluido' // STATUS ATUAL
+            ); 
+        }
+    });
+    calendarHistory.render();
 }
 
-window.mudarAba = function(status) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    
-    const areaLista = document.getElementById('listaAgendamentos');
-    const areaConfig = document.getElementById('areaConfig');
+window.abrirModalDetalhes = function(nome, servico, data, hora, celular, idDoc, pixConfirmado, status) {
+    document.getElementById('mNome').innerText = nome;
+    document.getElementById('mServico').innerText = servico;
+    document.getElementById('mData').innerText = data;
+    document.getElementById('mHora').innerText = hora;
+    document.getElementById('mTel').innerText = celular || "Sem telefone";
 
-    if(status === 'config') {
-        document.getElementById('tabConfig').classList.add('active');
-        areaLista.style.display = 'none';
-        areaConfig.style.display = 'block';
-        window.carregarDiasLiberados(); 
+    agendamentoSelecionado = { id: idDoc, celular: celular };
+
+    // Botão PIX
+    const btnPix = document.getElementById('btnConfirmarPix');
+    if (pixConfirmado) {
+        btnPix.innerHTML = '<i class="fa-solid fa-check"></i> PIX Confirmado';
+        btnPix.style.backgroundColor = '#10b981'; 
+        btnPix.disabled = true;
     } else {
-        areaConfig.style.display = 'none';
-        areaLista.style.display = 'block';
-        if(status === 'agendado') document.getElementById('tabAgendados').classList.add('active');
-        else document.getElementById('tabHistorico').classList.add('active');
-        window.carregarDados(status);
+        btnPix.innerHTML = '<i class="fa-solid fa-dollar-sign"></i> Confirmar PIX';
+        btnPix.style.backgroundColor = '#3b82f6';
+        btnPix.disabled = false;
     }
+
+    // Botão Concluir (Mostrar apenas se NÃO estiver concluído)
+    const btnConcluir = document.getElementById('btnConcluir');
+    if (status === 'concluido') {
+        btnConcluir.style.display = 'none'; // Esconde se já está no histórico
+        btnPix.style.display = 'none'; // Esconde PIX no histórico também (opcional)
+    } else {
+        btnConcluir.style.display = 'flex'; // Mostra se for agendado
+        btnPix.style.display = 'flex';
+    }
+
+    const modal = document.getElementById('modalDetalhes');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('ativo'), 10);
 }
 
-window.confirmarPix = async function(id) {
-    if(confirm("Confirmar o recebimento do sinal?")) {
-        try {
-            const ref = doc(db, "agendamentos", id);
-            await updateDoc(ref, { pixConfirmado: true });
-            window.carregarDados('agendado');
-        } catch (e) { console.error(e); alert("Erro ao confirmar PIX."); }
-    }
+window.fecharModalDetalhes = function() {
+    const modal = document.getElementById('modalDetalhes');
+    modal.classList.remove('ativo');
+    setTimeout(() => modal.style.display = 'none', 300);
 }
 
-window.concluirAgendamento = async function(id) {
-    if(confirm("Serviço realizado? Mover para histórico.")) {
-        try {
-            const ref = doc(db, "agendamentos", id);
-            await updateDoc(ref, { status: "concluido" });
-            window.carregarDados('agendado');
-        } catch (e) { console.error(e); alert("Erro ao concluir."); }
-    }
+const modalOverlay = document.getElementById('modalDetalhes');
+if(modalOverlay) {
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === this) fecharModalDetalhes();
+    });
 }
 
-// --- NOVA FUNÇÃO: CANCELAR ---
-window.cancelarAgendamento = async function(id) {
-    if(confirm("❌ Tem certeza que deseja CANCELAR este agendamento? O horário ficará livre novamente.")) {
-        try {
-            const ref = doc(db, "agendamentos", id);
-            await updateDoc(ref, { status: "cancelado" }); // Muda status para cancelado
-            window.carregarDados('agendado');
-        } catch (e) { console.error(e); alert("Erro ao cancelar."); }
-    }
+window.abrirWhatsApp = function() {
+    if (!agendamentoSelecionado.celular) return alert("Cliente sem número cadastrado!");
+    let num = agendamentoSelecionado.celular.replace(/\D/g, ''); 
+    if (!num.startsWith('55')) num = '55' + num; 
+    const msg = `Olá! Tudo bem? Passando para confirmar seu agendamento na Blues Afrotranças.`;
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// --- FUNÇÕES DE CONFIGURAÇÃO (DIAS E HORAS) ---
-
-window.adicionarDia = async function() {
-    const data = document.getElementById('dataConfig').value;
-    const local = document.getElementById('localConfig').value;
-    const inicio = document.getElementById('horaInicioConfig').value || "08:00";
-    const fim = document.getElementById('horaFimConfig').value || "18:00";
-
-    if (!data) return alert("Escolha uma data!");
+window.confirmarPix = async function() {
+    if(!confirm("Confirmar recebimento do sinal (PIX)?")) return;
 
     try {
-        await setDoc(doc(db, "disponibilidade", data), {
-            data: data,
-            local: local,
-            inicio: inicio,
-            fim: fim
+        const btnPix = document.getElementById('btnConfirmarPix');
+        btnPix.innerText = "Atualizando...";
+        
+        await updateDoc(doc(db, "agendamentos", agendamentoSelecionado.id), {
+            pixConfirmado: true
         });
-        alert("Dia liberado com sucesso!");
-        window.carregarDiasLiberados();
+
+        alert("Pagamento confirmado!");
+        fecharModalDetalhes();
+        if(calendarMain) calendarMain.refetchEvents();
     } catch (e) {
         console.error(e);
-        alert("Erro ao liberar data.");
+        alert("Erro ao confirmar PIX.");
     }
 }
 
-window.removerDia = async function(dataId) {
-    if(confirm("Bloquear este dia novamente (Folga)?")) {
-        try {
-            await deleteDoc(doc(db, "disponibilidade", dataId));
-            window.carregarDiasLiberados();
-        } catch (e) { console.error(e); alert("Erro ao remover."); }
+// --- NOVA FUNÇÃO: CONCLUIR ATENDIMENTO ---
+window.concluirAtendimento = async function() {
+    if(!confirm("Marcar este atendimento como CONCLUÍDO?\n\nEle sairá da agenda principal e irá para o histórico.")) return;
+
+    try {
+        const btn = document.getElementById('btnConcluir');
+        btn.innerText = "Processando...";
+        
+        // Atualiza status para 'concluido'
+        await updateDoc(doc(db, "agendamentos", agendamentoSelecionado.id), {
+            status: "concluido"
+        });
+
+        alert("Atendimento concluído com sucesso! ✅");
+        fecharModalDetalhes();
+        
+        // Atualiza os dois calendários
+        if(calendarMain) calendarMain.refetchEvents(); // Remove da frente
+        if(calendarHistory) calendarHistory.refetchEvents(); // Adiciona no histórico
+        
+        btn.innerText = "Concluir Atendimento";
+
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao concluir.");
+    }
+}
+
+window.cancelarAgendamento = async function() {
+    if (!confirm("Tem certeza que deseja CANCELAR e EXCLUIR este agendamento?")) return;
+
+    try {
+        const btn = document.querySelector('.btn-cancel');
+        const textoOriginal = btn.innerHTML;
+        btn.innerText = "Excluindo...";
+
+        await deleteDoc(doc(db, "agendamentos", agendamentoSelecionado.id));
+
+        alert("Agendamento cancelado com sucesso!");
+        fecharModalDetalhes();
+        if(calendarMain) calendarMain.refetchEvents();
+        btn.innerHTML = textoOriginal;
+
+    } catch (erro) {
+        console.error("Erro ao cancelar:", erro);
+        alert("Erro ao cancelar. Verifique o console.");
+    }
+}
+
+window.limparHistorico = async function() {
+    if (!confirm("⚠️ ATENÇÃO: Isso apagará TODOS os agendamentos concluídos do histórico.\n\nEssa ação não pode ser desfeita. Tem certeza?")) return;
+
+    const divLista = document.getElementById('listaHistorico');
+    divLista.innerHTML = '<p style="text-align:center;">Limpando...</p>';
+
+    try {
+        const q = query(collection(db, "agendamentos"), where("status", "==", "concluido"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            alert("O histórico já está vazio.");
+            window.carregarHistoricoLista();
+            return;
+        }
+
+        const batch = writeBatch(db);
+        snapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        alert("Histórico limpo com sucesso!");
+        window.carregarHistoricoLista();
+        if (calendarHistory) calendarHistory.refetchEvents();
+
+    } catch (error) {
+        console.error("Erro ao limpar histórico:", error);
+        alert("Erro ao limpar histórico.");
+        window.carregarHistoricoLista();
+    }
+}
+
+window.carregarHistoricoLista = async function() {
+    const div = document.getElementById('listaHistorico');
+    div.innerHTML = '<p style="text-align:center;">Carregando...</p>';
+    
+    try {
+        const q = query(collection(db, "agendamentos"), where("status", "==", "concluido"), orderBy("data", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        if(querySnapshot.empty) { 
+            div.innerHTML = "<p style='text-align:center;color:#aaa; padding: 20px;'>Nenhum histórico encontrado.</p>"; 
+            return; 
+        }
+
+        let html = "";
+        querySnapshot.forEach(doc => {
+            const d = doc.data();
+            const dataBR = new Date(d.data + "T00:00:00").toLocaleDateString('pt-BR');
+            html += `
+            <div class="admin-card" style="padding:15px; margin-bottom: 10px; border-left: 4px solid #10b981; background: rgba(255,255,255,0.05);">
+                <div style="display:flex; justify-content:space-between;">
+                    <h4 style="color:#fff; font-size: 1.1rem;">${d.cliente}</h4>
+                    <span style="color:#10b981; font-weight:bold;">✔ Concluído</span>
+                </div>
+                <p style="color:#e2e8f0; margin-top:5px;">📅 ${dataBR} às ${d.horario}</p>
+                <p style="color:#94a3b8; font-size: 0.9rem;">${d.servico}</p>
+            </div>`;
+        });
+        div.innerHTML = html;
+    } catch (e) {
+        console.error("Erro ao carregar lista:", e);
+        div.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar lista.</p>';
     }
 }
 
 window.carregarDiasLiberados = async function() {
     const div = document.getElementById('listaDiasLiberados');
-    div.innerHTML = '<p style="color:#888;">Carregando...</p>';
-
-    try {
-        const q = query(collection(db, "disponibilidade"), orderBy("data"));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            div.innerHTML = '<p style="color:#aaa;">Nenhum dia liberado.</p>';
-            return;
-        }
-
-        let html = "";
-        querySnapshot.forEach((docSnap) => {
-            const dados = docSnap.data();
-            const dataBR = new Date(dados.data + "T00:00:00").toLocaleDateString('pt-BR');
-            const corBorda = dados.local.includes("Camaçari") ? "#06b6d4" : "#f59e0b"; 
-            
-            html += `
-                <div class="admin-card" style="border-left: 5px solid ${corBorda}; display:flex; justify-content:space-between; align-items:center; padding:15px;">
-                    <div>
-                        <h4 style="color:#fff;">${dataBR}</h4>
-                        <span style="color:${corBorda}; font-size:0.9rem;">📍 ${dados.local}</span>
-                        <div style="font-size:0.8rem; color:#ccc;">🕒 ${dados.inicio} às ${dados.fim}</div>
-                    </div>
-                    <button onclick="removerDia('${docSnap.id}')" style="background:transparent; border:1px solid #ef4444; color:#ef4444; padding:5px 10px; border-radius:5px; cursor:pointer;">
-                        Bloquear
-                    </button>
-                </div>
-            `;
-        });
-        div.innerHTML = html;
-    } catch (e) { console.error(e); div.innerHTML = "Erro ao carregar."; }
+    div.innerHTML = '<p>Carregando...</p>';
+    const q = query(collection(db, "disponibilidade"), orderBy("data"));
+    const snap = await getDocs(q);
+    if (snap.empty) { div.innerHTML = '<p style="color:#aaa">Nenhum dia liberado.</p>'; return; }
+    
+    let html = "";
+    snap.forEach(doc => {
+        const d = doc.data();
+        const dataBR = new Date(d.data + "T00:00:00").toLocaleDateString('pt-BR');
+        html += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div><h4 style="color:#fff">${dataBR}</h4><span>${d.local}</span></div>
+            <button onclick="removerDia('${doc.id}')" class="btn-cancelar" style="width:auto;">Remover</button>
+        </div>`;
+    });
+    div.innerHTML = html;
 }
 
-// --- CARREGAR DADOS ---
-window.carregarDados = async function(statusFiltro = 'agendado') {
-    const listaDiv = document.getElementById('listaAgendamentos');
-    if (!listaDiv || !auth.currentUser) return;
-    listaDiv.innerHTML = '<div style="text-align:center; padding: 40px;"><span class="material-icons" style="font-size: 40px; color: #3b82f6; animation: spin 1s infinite;">autorenew</span></div>';
+window.adicionarDia = async function() {
+    const data = document.getElementById('dataConfig').value;
+    const local = document.getElementById('localConfig').value;
+    const inicio = document.getElementById('horaInicioConfig').value;
+    const fim = document.getElementById('horaFimConfig').value;
+    if (!data) return alert("Escolha uma data!");
+    await setDoc(doc(db, "disponibilidade", data), { data, local, inicio, fim });
+    alert("Dia liberado!"); window.carregarDiasLiberados();
+}
 
-    const hoje = new Date();
-    const amanha = new Date();
-    amanha.setDate(hoje.getDate() + 1);
-    const ano = amanha.getFullYear();
-    const mes = String(amanha.getMonth() + 1).padStart(2, '0');
-    const dia = String(amanha.getDate()).padStart(2, '0');
-    const stringAmanha = `${ano}-${mes}-${dia}`;
-    const dataAmanhaBR = amanha.toLocaleDateString('pt-BR');
-
-    try {
-        const q = query(collection(db, "agendamentos"), where("status", "==", statusFiltro), orderBy("data"), orderBy("horario"));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            listaDiv.innerHTML = `<div style="text-align:center; margin-top:40px; color:#aaa;"><h3>Nenhum item aqui.</h3></div>`;
-            return;
-        }
-
-        let htmlFinal = "";
-        let ultimaData = "";
-        let cardsBuffer = "";
-        let listaAmanha = [];
-        textoResumoGlobal = "";
-
-        querySnapshot.forEach((docSnap) => {
-            const dados = docSnap.data();
-            const id = docSnap.id;
-            const nome = dados.cliente || "Cliente";
-            const servico = dados.servico || "Serviço";
-            const horario = dados.horario || "--:--";
-            const valor = dados.valor ? dados.valor.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : "R$ 0,00";
-            const zapLink = dados.telefone ? `https://wa.me/55${dados.telefone.replace(/\D/g,'')}` : "#";
-            const dataBR = formatDataBR(dados.data);
-            const periodo = dados.periodo ? dados.periodo.toUpperCase() : "";
-            
-            let btnLembrete = "";
-            if (dados.data === stringAmanha && statusFiltro === 'agendado') {
-                listaAmanha.push(`⏰ *${horario}* - ${nome} (${servico})`);
-                btnLembrete = `<button onclick="enviarLembrete('${dados.telefone}', '${nome}', '${horario}', '${servico}')" class="btn-lembrete">🔔 Enviar Lembrete</button>`;
-            }
-
-            const isPixOk = dados.pixConfirmado === true;
-            let acoes = "";
-            
-            if (statusFiltro === 'agendado') {
-                const pixBtn = isPixOk 
-                    ? `<div class="badge-pix ok">✅ Sinal Confirmado</div>` 
-                    : `<button onclick="confirmarPix('${id}')" class="btn-pix">💰 Confirmar PIX</button>`;
-                
-                // Botão de Cancelar aparece se ainda não foi concluído
-                const cancelBtn = `<button onclick="cancelarAgendamento('${id}')" class="btn-cancelar">❌ Cancelar</button>`;
-                
-                const concluirBtn = `<button onclick="concluirAgendamento('${id}')" class="btn-concluir">Marcar como Feito</button>`;
-                
-                acoes = pixBtn + cancelBtn + concluirBtn;
-            } else {
-                acoes = isPixOk ? `<span style="color:#10b981; font-size:0.8rem;">Sinal OK</span>` : `<span style="color:#ef4444; font-size:0.8rem;">Sem Sinal</span>`;
-            }
-
-            if (dataBR !== ultimaData) {
-                if (ultimaData !== "") htmlFinal += `<div class="cards-grid">${cardsBuffer}</div>`;
-                htmlFinal += `<h3 class="section-title">📅 ${dataBR}</h3>`;
-                ultimaData = dataBR;
-                cardsBuffer = "";
-            }
-
-            cardsBuffer += `
-                <div class="admin-card ${isPixOk ? 'border-green' : ''}">
-                    <div class="card-header"><span class="time-badge">${horario} ${periodo ? '('+periodo+')' : ''}</span><span class="price-tag">${valor}</span></div>
-                    <div class="card-body">
-                        <div class="client-name">${nome}</div>
-                        <span class="service-name">${servico}</span>
-                        ${btnLembrete}
-                        ${acoes}
-                        <div class="info-row" style="margin-top:10px;"><span class="material-icons small">place</span>${dados.endereco || '-'}</div>
-                        <div class="info-row"><span class="material-icons small">phone</span>${dados.telefone || '-'}</div>
-                    </div>
-                    <div class="card-footer"><a href="${zapLink}" target="_blank" class="btn-whatsapp-card">WhatsApp</a></div>
-                </div>
-            `;
-        });
-
-        let botaoResumoHTML = "";
-        if (listaAmanha.length > 0) {
-            textoResumoGlobal = `📅 *Agenda de Amanhã (${dataAmanhaBR})*:\n\n${listaAmanha.join('\n')}\n\n💙 _Blues Afrotrancas_`;
-            botaoResumoHTML = `<div style="margin-bottom: 25px;"><button onclick="enviarResumoZap()" class="btn-resumo-trancista">📑 Enviar Agenda de Amanhã p/ Mim (${listaAmanha.length})</button></div>`;
-        }
-
-        htmlFinal += `<div class="cards-grid">${cardsBuffer}</div>`;
-        listaDiv.innerHTML = botaoResumoHTML + htmlFinal;
-    } catch (error) { console.error(error); listaDiv.innerHTML = `<div class="alert-box error">Erro: ${error.message}</div>`; }
+window.removerDia = async function(id) {
+    if(confirm("Bloquear dia?")) {
+        await deleteDoc(doc(db, "disponibilidade", id));
+        window.carregarDiasLiberados();
+    }
 }

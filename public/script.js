@@ -38,12 +38,9 @@ clientAddressSelect.addEventListener('change', function() {
     timeSlot.disabled = true;
 });
 
-// 1. SELEÇÃO DE SERVIÇO (Lógica do Último Procedimento)
 serviceSelect.addEventListener('change', function() {
     const price = parseFloat(this.value);
     const serviceName = this.options[this.selectedIndex].text;
-    
-    // Verifica se é manutenção
     if (serviceName.toLowerCase().includes("manutenção") || serviceName.toLowerCase().includes("retwist")) {
         divUltimoProcedimento.style.display = 'block';
     } else {
@@ -66,7 +63,6 @@ serviceSelect.addEventListener('change', function() {
     }
 });
 
-// 2. DATA (Verifica dia, cidade e HORÁRIO ESPECÍFICO)
 dateInput.addEventListener('change', async function() {
     const data = this.value;
     const option = serviceSelect.options[serviceSelect.selectedIndex];
@@ -98,11 +94,9 @@ dateInput.addEventListener('change', async function() {
             return;
         }
 
-        // Recupera horários permitidos (Padrão 08 as 18 se não tiver)
         const horaInicio = infoDia.inicio || "08:00";
         const horaFim = infoDia.fim || "18:00";
 
-        // Busca ocupados
         const q = query(collection(db, "agendamentos"), where("data", "==", data), where("status", "==", "agendado"));
         const querySnapshot = await getDocs(q);
 
@@ -126,7 +120,6 @@ dateInput.addEventListener('change', async function() {
             return;
         }
 
-        // Verifica se os horários fixos estão dentro da faixa definida pela Admin
         const permiteManha = ("09:00" >= horaInicio && "09:00" < horaFim);
         const permiteTarde = ("14:00" >= horaInicio && "14:00" < horaFim);
         const permiteDiaTodo = ("08:00" >= horaInicio && "18:00" <= horaFim);
@@ -199,9 +192,31 @@ btnSend.addEventListener('click', async function() {
     } catch (e) { console.error(e); alert("Erro ao agendar."); btnSend.disabled = false; }
 });
 
-window.abrirModal = function() { document.getElementById('modalConsulta').style.display = 'flex'; }
-window.fecharModal = function() { document.getElementById('modalConsulta').style.display = 'none'; }
-window.onclick = function(event) { const modal = document.getElementById('modalConsulta'); if (event.target == modal) { modal.style.display = "none"; } }
+// --- CORREÇÃO DO MODAL (ADICIONANDO A CLASSE .ativo) ---
+window.abrirModal = function() {
+    const modal = document.getElementById('modalConsulta');
+    modal.style.display = 'flex';
+    // Pequeno delay para permitir a transição CSS de opacidade
+    setTimeout(() => {
+        modal.classList.add('ativo');
+    }, 10);
+}
+
+window.fecharModal = function() {
+    const modal = document.getElementById('modalConsulta');
+    modal.classList.remove('ativo');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300); // Espera o tempo da transição
+}
+
+// Fechar ao clicar fora
+window.onclick = function(event) {
+    const modal = document.getElementById('modalConsulta');
+    if (event.target == modal) {
+        window.fecharModal();
+    }
+}
 
 window.buscarAgendamentos = async function() {
     const telefoneInput = document.getElementById('searchPhone').value;

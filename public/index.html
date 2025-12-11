@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blues Afrotrancas | Agendamento Premium</title>
+    <title>Blues Afrotranças | Agendamento Premium</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="logo-blues.png.jpeg" >
+    <link rel="icon" href="logo_blues.jpeg" type="image/png"> 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <div class="bg-glow one"></div>
     <div class="bg-glow two"></div>
-    <header class="hero">
-        <div class="hero-content">
-           <div style="text-align: center; margin-bottom: 20px;">
-    <img src="logo.png" style="width: 250px; filter: drop-shadow(0 0 10px #06b6d4);">
-    <h2 style="color: #06b6d4; letter-spacing: 5px; margin-top: -10px;">AFROTRANCAS</h2>
-</div>
-            <button onclick="abrirModal()" class="btn-consultar">🔎 Ver meus Agendamentos</button>
-            <h1>Sua coroa, nossa arte.</h1>
-            <p>Especialistas em tranças e autoestima.</p>
-            <a href="#agendamento" class="btn-hero">Agendar Agora</a>
+
+   <header class="hero">
+    <div class="hero-content">
+        <div class="logo-container">
+            <img src="logo_blues.jpeg" alt="Logo Blues" class="hero-logo-img">
+            <h2 class="hero-subtitle">AFROTRANCAS</h2>
         </div>
-    </header>
+        
+        <button onclick="abrirModal()" class="btn-consultar">🔎 Ver meus Agendamentos</button>
+        <h1>Sua coroa, nossa arte.</h1>
+        <p>Especialistas em tranças e autoestima.</p>
+        <a href="#agendamento" class="btn-hero">Agendar Agora</a>
+    </div>
+</header>
 
     <div class="container glass-effect" id="agendamento">
-        <div class="form-header"><h2>Faça seu Agendamento</h2><p>Preencha os dados e escolha seu estilo</p></div>
+        <div class="form-header">
+            <h2>Faça seu Agendamento</h2>
+            <p>Preencha os dados e escolha seu estilo</p>
+        </div>
         <div class="content">
             <div id="dateAlert" class="alert-box" style="display: none;"></div>
+
             <div class="step">
                 <label class="step-title"><span class="material-icons">person</span> Seus Dados</label>
                 <div class="input-group-col">
@@ -56,8 +62,8 @@
                             <option value="95" data-tipo="curto">Boxeadora (2 tranças) - R$ 95,00</option>
                         </optgroup>
                         <optgroup label="Nagô Desenhada / Complexa (6h+)">
-                            <option value="160" data-tipo="longo">Channa c/ Jumbo - R$ 160,00</option>
-                            <option value="90" data-tipo="curto">Channa s/ Jumbo (Rápida) - R$ 90,00</option>
+                            <option value="160" data-tipo="longo">Ghanna c/ Jumbo - R$ 160,00</option>
+                            <option value="90" data-tipo="curto">Ghanna s/ Jumbo (Rápida) - R$ 90,00</option>
                             <option value="180" data-tipo="longo">Mohawk Braids (Moicano) - R$ 180,00</option>
                             <option value="180" data-tipo="longo">Fulani Braids - R$ 180,00</option>
                         </optgroup>
@@ -69,7 +75,7 @@
                         </optgroup>
                         <optgroup label="Locs & Outros">
                             <option value="85" data-tipo="curto">Manutenção Locs (Retwist) - R$ 85,00</option>
-                            <option value="90" data-tipo="curto">Twist / Start Locs - R$ 90,00</option>
+                            <option value="90" data-tipo="curto">Twist / Start Locs -  A Patir de R$ 90,00</option>
                             <option value="130" data-tipo="longo">Faux Locs Individuais - R$ 130,00</option>
                             <option value="180" data-tipo="longo">Entrelace - R$ 180,00</option>
                             <option value="130" data-tipo="curto">Crochet Braids - R$ 130,00</option>
@@ -108,7 +114,7 @@
         </div>
     </div>
     
-    <div id="modalConsulta" class="modal-overlay" style="display: none;">
+    <div id="modalConsulta" class="modal-overlay">
         <div class="modal-content glass-effect">
             <span onclick="fecharModal()" class="close-btn">&times;</span>
             <h3>Meus Agendamentos 📅</h3>
@@ -120,7 +126,12 @@
             <div id="resultadoBusca" class="results-area"></div>
         </div>
     </div>
-    <footer><p>&copy; 2025 Blues Afrotrancas. <a href="admin.html">Área Restrita</a></p></footer>
+    
+    <footer class="main-footer">
+        <p>&copy; 2025 Blues Afrotrancas. Todos os direitos reservados.</p>
+        <a href="admin.html" class="admin-link">Área Restrita</a>
+    </footer>
+    
     <script type="module" src="script.js"></script>
 </body>
 </html>
