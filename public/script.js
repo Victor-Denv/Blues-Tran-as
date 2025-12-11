@@ -63,6 +63,7 @@ serviceSelect.addEventListener('change', function() {
     }
 });
 
+// --- LÓGICA DE VERIFICAÇÃO DE DATA (ATUALIZADA) ---
 dateInput.addEventListener('change', async function() {
     const data = this.value;
     const option = serviceSelect.options[serviceSelect.selectedIndex];
@@ -78,25 +79,47 @@ dateInput.addEventListener('change', async function() {
     dateAlert.style.display = 'none';
 
     try {
+        // 1. Verifica se há EXCEÇÃO (Folga ou Config Específica)
         const docRef = doc(db, "disponibilidade", data);
         const docSnap = await getDoc(docRef);
 
-        if (!docSnap.exists()) {
-            msgErro("Agenda fechada para este dia (Folga).");
-            timeSlot.innerHTML = '<option>Indisponível</option>';
-            return;
-        }
+        let horaInicio = "08:00";
+        let horaFim = "18:00";
+        let localDia = "Camaçari - BA"; // Local padrão se nada for definido
 
-        const infoDia = docSnap.data();
-        if (infoDia.local !== cidadeCliente) {
-            msgErro(`Nesta data estarei em ${infoDia.local}.`);
-            timeSlot.innerHTML = '<option>Outra Cidade</option>';
-            return;
-        }
+        // Se o cliente escolheu Feira, assumimos que o padrão pra ele é Feira se não houver bloqueio?
+        // Para simplificar: Padrão é aberto. Se houver config, respeita a config.
+        // Se NÃO houver config, assumimos que ela atende na cidade do cliente (lógica "todos os dias livres") 
+        // ou definimos um local padrão fixo. O user pediu "dia que ela vai estar em Feira".
+        // Lógica Adotada: Se não tem config, está livre na cidade escolhida (flexibilidade total).
+        
+        if (docSnap.exists()) {
+            const infoDia = docSnap.data();
+            
+            // Se for folga, bloqueia tudo
+            if (infoDia.tipo === 'folga') {
+                msgErro("Agenda fechada para este dia (Folga).");
+                timeSlot.innerHTML = '<option>Indisponível</option>';
+                return;
+            }
 
-        const horaInicio = infoDia.inicio || "08:00";
-        const horaFim = infoDia.fim || "18:00";
+            // Se for trabalho personalizado
+            if (infoDia.tipo === 'trabalho') {
+                horaInicio = infoDia.inicio;
+                horaFim = infoDia.fim;
+                localDia = infoDia.local;
 
+                // Verifica se a cidade bate
+                if (localDia !== cidadeCliente) {
+                    msgErro(`Nesta data estarei atendendo em ${localDia}.`);
+                    timeSlot.innerHTML = '<option>Outra Cidade</option>';
+                    return;
+                }
+            }
+        } 
+        // Se NÃO existe doc, assume dia normal (08-18h) na cidade que o cliente escolheu.
+
+        // 2. Busca agendamentos já feitos nesse dia
         const q = query(collection(db, "agendamentos"), where("data", "==", data), where("status", "==", "agendado"));
         const querySnapshot = await getDocs(q);
 
@@ -129,8 +152,8 @@ dateInput.addEventListener('change', async function() {
                 htmlOpcoes += '<option value="08:00" data-periodo="dia_todo">08:00 (Dia Inteiro)</option>';
                 temVaga = true;
             } else {
-                if(!permiteDiaTodo) msgErro("Horário de atendimento reduzido neste dia.");
-                else msgErro("Requer o dia todo livre.");
+                if(!permiteDiaTodo) msgErro("Horário reduzido neste dia (não cabe serviço longo).");
+                else msgErro("Dia requer manhã e tarde livres.");
             }
         } else {
             if (!manhaOcupada && permiteManha) {
@@ -141,7 +164,7 @@ dateInput.addEventListener('change', async function() {
                 htmlOpcoes += '<option value="14:00" data-periodo="tarde">14:00 (Tarde)</option>';
                 temVaga = true;
             }
-            if (!temVaga) msgErro("Horários ocupados ou indisponíveis.");
+            if (!temVaga) msgErro("Horários ocupados.");
         }
 
         timeSlot.innerHTML = htmlOpcoes;
@@ -192,30 +215,21 @@ btnSend.addEventListener('click', async function() {
     } catch (e) { console.error(e); alert("Erro ao agendar."); btnSend.disabled = false; }
 });
 
-// --- CORREÇÃO DO MODAL (ADICIONANDO A CLASSE .ativo) ---
 window.abrirModal = function() {
     const modal = document.getElementById('modalConsulta');
     modal.style.display = 'flex';
-    // Pequeno delay para permitir a transição CSS de opacidade
-    setTimeout(() => {
-        modal.classList.add('ativo');
-    }, 10);
+    setTimeout(() => { modal.classList.add('ativo'); }, 10);
 }
 
 window.fecharModal = function() {
     const modal = document.getElementById('modalConsulta');
     modal.classList.remove('ativo');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300); // Espera o tempo da transição
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
 }
 
-// Fechar ao clicar fora
 window.onclick = function(event) {
     const modal = document.getElementById('modalConsulta');
-    if (event.target == modal) {
-        window.fecharModal();
-    }
+    if (event.target == modal) { window.fecharModal(); }
 }
 
 window.buscarAgendamentos = async function() {

@@ -91,10 +91,46 @@ body {
     border-radius: 15px; padding: 20px; margin-bottom: 20px;
 }
 
-#calendar, #calendar-history { max-width: 100%; margin: 0 auto; }
-.fc-toolbar-title { color: white !important; font-size: 1.2rem !important; }
-.fc-button { background-color: var(--primary-blue) !important; border: none !important; }
-.fc-daygrid-day { border-color: rgba(255,255,255,0.1) !important; }
+/* --- FULLCALENDAR CUSTOMIZADO (DARK THEME) --- */
+#calendar, #calendar-history { max-width: 100%; margin: 0 auto; color: #e2e8f0; }
+
+/* Remove fundo branco e bordas padrões */
+.fc-theme-standard .fc-scrollgrid { border: 1px solid var(--glass-border) !important; }
+.fc-theme-standard td, .fc-theme-standard th { border: 1px solid var(--glass-border) !important; }
+
+/* Cabeçalho dos dias */
+.fc-col-header-cell-cushion { color: var(--neon-blue); text-decoration: none !important; font-weight: bold; padding: 10px 0 !important; }
+
+/* Números dos dias */
+.fc-daygrid-day-number { color: #94a3b8; text-decoration: none !important; }
+
+/* Dia Atual */
+.fc-day-today { background: rgba(59, 130, 246, 0.1) !important; }
+
+/* Botões do Calendário */
+.fc-button-primary { 
+    background-color: rgba(255,255,255,0.05) !important; 
+    border: 1px solid var(--glass-border) !important;
+    color: white !important;
+    text-transform: capitalize;
+}
+.fc-button-primary:hover { background-color: var(--primary-blue) !important; }
+.fc-button-active { background-color: var(--primary-blue) !important; border-color: var(--primary-blue) !important; }
+
+/* Título (Mês) */
+.fc-toolbar-title { font-size: 1.5rem !important; color: white; }
+
+/* Eventos */
+.evento-tag {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-left: 3px solid #3b82f6;
+    color: #e2e8f0; padding: 4px 8px; margin-bottom: 4px; border-radius: 4px;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease;
+    display: flex; justify-content: space-between; align-items: center; overflow: hidden; white-space: nowrap;
+}
+.evento-tag:hover { background-color: rgba(59, 130, 246, 0.3); transform: translateX(2px); }
+.evento-hora { font-weight: bold; color: #60a5fa; margin-right: 5px; }
+
 
 /* --- FORMULÁRIOS E GERAIS --- */
 .container {
@@ -124,22 +160,6 @@ input:focus, select:focus { border-color: var(--primary-blue); }
     .hero-logo-img { width: 180px; }
     .fc-toolbar { flex-direction: column; gap: 10px; }
 }
-
-/* EVENTO CARD (CALENDARIO) */
-.evento-tag {
-    background-color: rgba(59, 130, 246, 0.15);
-    border-left: 3px solid #3b82f6;
-    color: #e2e8f0;
-    padding: 4px 8px;
-    margin-bottom: 4px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex; justify-content: space-between; align-items: center; overflow: hidden; white-space: nowrap;
-}
-.evento-tag:hover { background-color: rgba(59, 130, 246, 0.3); transform: translateX(2px); }
-.evento-hora { font-weight: bold; color: #60a5fa; margin-right: 5px; }
 
 /* MODAL GERAL */
 .modal-overlay {
@@ -171,7 +191,7 @@ input:focus, select:focus { border-color: var(--primary-blue); }
 
 /* AÇÕES MODAL ADMIN */
 .modal-actions {
-    display: grid; grid-template-columns: 1fr; /* Botões empilhados */
+    display: grid; grid-template-columns: 1fr;
     gap: 10px; margin-top: 25px;
 }
 
@@ -183,11 +203,8 @@ input:focus, select:focus { border-color: var(--primary-blue); }
 }
 .btn-wpp { background-color: #10b981; color: white; }
 .btn-confirm-pix { background-color: #3b82f6; color: white; } 
-
-/* Botão Concluir (Novo) */
-.btn-concluir { background-color: #8b5cf6; color: white; } /* Roxo Neon */
+.btn-concluir { background-color: #8b5cf6; color: white; }
 .btn-concluir:hover { background-color: #7c3aed; }
-
 .btn-cancel { background-color: #ef4444; color: white; }
 
 .btn-cancelar {
