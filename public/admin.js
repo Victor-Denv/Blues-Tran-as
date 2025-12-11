@@ -86,15 +86,17 @@ function iniciarCalendarioPrincipal() {
         initialView: 'dayGridMonth',
         locale: 'pt-br',
         height: 'auto',
+        dayMaxEvents: false, // Permite que a célula cresça para caber texto
         headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
         
         eventContent: function(arg) {
             let icone = arg.event.extendedProps.pixConfirmado ? "✅" : "";
+            // Estrutura HTML simplificada para o CSS novo agir
             return {
                 html: `
                     <div class="evento-tag" style="${arg.event.extendedProps.pixConfirmado ? 'border-left-color: #10b981;' : ''}">
-                        <span class="evento-hora">${arg.event.extendedProps.horario}</span>
-                        <span class="evento-nome">${icone} ${arg.event.extendedProps.cliente}</span>
+                        <div class="evento-hora">${arg.event.extendedProps.horario}</div>
+                        <div class="evento-nome">${icone} ${arg.event.extendedProps.cliente}</div>
                     </div>
                 `
             }
@@ -139,6 +141,7 @@ function iniciarCalendarioHistorico() {
         initialView: 'dayGridMonth',
         locale: 'pt-br',
         height: 'auto',
+        dayMaxEvents: false,
         headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
         events: async function(info, successCallback, failureCallback) {
             try {
@@ -310,10 +313,6 @@ window.carregarHistoricoLista = async function() {
         div.innerHTML = html;
     } catch (e) { console.error("Erro ao carregar lista:", e); div.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar lista.</p>'; }
 }
-
-// ==========================================
-// NOVA LÓGICA DE CONFIGURAÇÃO (EXCEÇÕES)
-// ==========================================
 
 window.carregarConfiguracoes = async function() {
     const div = document.getElementById('listaDiasLiberados');

@@ -106,7 +106,7 @@ body {
 .fc-theme-standard td, 
 .fc-theme-standard th { 
     border-color: var(--glass-border) !important; 
-    background: transparent !important; /* Essencial para tirar o branco */
+    background: transparent !important; 
 }
 
 /* Cabeçalho dos dias (Seg, Ter...) */
@@ -116,7 +116,6 @@ body {
     font-weight: bold; 
     padding: 10px 0 !important; 
 }
-/* Garante que o container do cabeçalho seja transparente */
 .fc-scrollgrid-section-header > *,
 .fc-col-header { background: transparent !important; }
 
@@ -140,17 +139,37 @@ body {
 /* Título (Mês) */
 .fc-toolbar-title { font-size: 1.5rem !important; color: white; }
 
-/* Eventos */
+/* --- EVENTOS (Correção de Texto Cortado) --- */
 .evento-tag {
     background-color: rgba(59, 130, 246, 0.15);
     border-left: 3px solid #3b82f6;
-    color: #e2e8f0; padding: 4px 8px; margin-bottom: 4px; border-radius: 4px;
-    font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease;
-    display: flex; justify-content: space-between; align-items: center; overflow: hidden; white-space: nowrap;
+    color: #e2e8f0;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* Permite quebra de linha */
+    display: flex;
+    flex-direction: column; /* Coloca hora em cima, nome embaixo se precisar */
+    align-items: flex-start;
+    white-space: normal; /* AQUI ESTÁ A MÁGICA */
+    overflow: visible;
+    line-height: 1.2;
 }
 .evento-tag:hover { background-color: rgba(59, 130, 246, 0.3); transform: translateX(2px); }
-.evento-hora { font-weight: bold; color: #60a5fa; margin-right: 5px; }
 
+.evento-hora { 
+    font-weight: bold; 
+    color: #60a5fa; 
+    font-size: 0.75rem; 
+    margin-bottom: 2px;
+}
+.evento-nome {
+    word-break: break-word; /* Quebra palavras longas se necessário */
+}
 
 /* --- FORMULÁRIOS E GERAIS --- */
 .container {
@@ -163,7 +182,7 @@ input, select {
     border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; outline: none; margin-bottom: 10px;
 }
 input:focus, select:focus { border-color: var(--primary-blue); }
-option { background-color: #0f172a; color: white; } /* Fundo escuro para opções do select */
+option { background-color: #0f172a; color: white; }
 
 .btn-whatsapp {
     width: 100%; padding: 15px; background: linear-gradient(45deg, #25D366, #128C7E);
