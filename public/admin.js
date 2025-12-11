@@ -76,7 +76,7 @@ window.mudarAba = function(nomeAba, btnElement) {
     } 
     else if (nomeAba === 'config') {
         document.getElementById('tabConfig').style.display = 'block';
-        window.carregarConfiguracoes(); // Mudança de nome da função
+        window.carregarConfiguracoes(); 
     }
 }
 
@@ -89,7 +89,6 @@ function iniciarCalendarioPrincipal() {
         headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
         
         eventContent: function(arg) {
-            let classePix = arg.event.extendedProps.pixConfirmado ? "border-green-500" : "border-blue-500";
             let icone = arg.event.extendedProps.pixConfirmado ? "✅" : "";
             return {
                 html: `
@@ -313,13 +312,12 @@ window.carregarHistoricoLista = async function() {
 }
 
 // ==========================================
-// LÓGICA DE CONFIGURAÇÃO (DIAS LIVRES / FOLGAS)
+// NOVA LÓGICA DE CONFIGURAÇÃO (EXCEÇÕES)
 // ==========================================
 
 window.carregarConfiguracoes = async function() {
     const div = document.getElementById('listaDiasLiberados');
     div.innerHTML = '<p>Carregando...</p>';
-    // Agora buscamos na collection "disponibilidade" que guarda as exceções
     const q = query(collection(db, "disponibilidade"), orderBy("data"));
     const snap = await getDocs(q);
     
@@ -369,14 +367,13 @@ window.salvarConfiguracaoDia = async function() {
         config.fim = fim;
     }
 
-    // Salva ou sobrescreve a configuração daquele dia
     await setDoc(doc(db, "disponibilidade", data), config);
     alert("Configuração salva com sucesso!"); 
     window.carregarConfiguracoes();
 }
 
 window.removerConfig = async function(id) {
-    if(confirm("Remover esta configuração?\nO dia voltará ao padrão (Aberto 08-18h em Camaçari).")) {
+    if(confirm("Remover esta configuração?\nO dia voltará ao padrão (Aberto em Camaçari).")) {
         await deleteDoc(doc(db, "disponibilidade", id));
         window.carregarConfiguracoes();
     }

@@ -10,6 +10,13 @@
     --text-muted: #94a3b8;
     --success: #10b981;
     --error: #ef4444;
+
+    /* VARIÁVEIS DO FULLCALENDAR (OVERRIDE TOTAL) */
+    --fc-page-bg-color: transparent;
+    --fc-border-color: rgba(255, 255, 255, 0.1);
+    --fc-neutral-bg-color: transparent;
+    --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.05);
+    --fc-today-bg-color: rgba(59, 130, 246, 0.15);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
@@ -91,18 +98,30 @@ body {
     border-radius: 15px; padding: 20px; margin-bottom: 20px;
 }
 
-/* --- FULLCALENDAR CUSTOMIZADO (DARK THEME) --- */
+/* --- FULLCALENDAR CUSTOMIZADO (DARK THEME CORRIGIDO) --- */
 #calendar, #calendar-history { max-width: 100%; margin: 0 auto; color: #e2e8f0; }
 
-/* Remove fundo branco e bordas padrões */
-.fc-theme-standard .fc-scrollgrid { border: 1px solid var(--glass-border) !important; }
-.fc-theme-standard td, .fc-theme-standard th { border: 1px solid var(--glass-border) !important; }
+/* Remove fundos brancos de todas as tabelas e células */
+.fc-theme-standard .fc-scrollgrid, 
+.fc-theme-standard td, 
+.fc-theme-standard th { 
+    border-color: var(--glass-border) !important; 
+    background: transparent !important; /* Essencial para tirar o branco */
+}
 
-/* Cabeçalho dos dias */
-.fc-col-header-cell-cushion { color: var(--neon-blue); text-decoration: none !important; font-weight: bold; padding: 10px 0 !important; }
+/* Cabeçalho dos dias (Seg, Ter...) */
+.fc-col-header-cell-cushion { 
+    color: var(--neon-blue) !important; 
+    text-decoration: none !important; 
+    font-weight: bold; 
+    padding: 10px 0 !important; 
+}
+/* Garante que o container do cabeçalho seja transparente */
+.fc-scrollgrid-section-header > *,
+.fc-col-header { background: transparent !important; }
 
 /* Números dos dias */
-.fc-daygrid-day-number { color: #94a3b8; text-decoration: none !important; }
+.fc-daygrid-day-number { color: #94a3b8 !important; text-decoration: none !important; }
 
 /* Dia Atual */
 .fc-day-today { background: rgba(59, 130, 246, 0.1) !important; }
@@ -113,8 +132,9 @@ body {
     border: 1px solid var(--glass-border) !important;
     color: white !important;
     text-transform: capitalize;
+    box-shadow: none !important;
 }
-.fc-button-primary:hover { background-color: var(--primary-blue) !important; }
+.fc-button-primary:hover { background-color: var(--primary-blue) !important; border-color: var(--primary-blue) !important; }
 .fc-button-active { background-color: var(--primary-blue) !important; border-color: var(--primary-blue) !important; }
 
 /* Título (Mês) */
@@ -143,6 +163,7 @@ input, select {
     border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; outline: none; margin-bottom: 10px;
 }
 input:focus, select:focus { border-color: var(--primary-blue); }
+option { background-color: #0f172a; color: white; } /* Fundo escuro para opções do select */
 
 .btn-whatsapp {
     width: 100%; padding: 15px; background: linear-gradient(45deg, #25D366, #128C7E);

@@ -63,7 +63,6 @@ serviceSelect.addEventListener('change', function() {
     }
 });
 
-// --- LÓGICA DE VERIFICAÇÃO DE DATA (ATUALIZADA) ---
 dateInput.addEventListener('change', async function() {
     const data = this.value;
     const option = serviceSelect.options[serviceSelect.selectedIndex];
@@ -79,37 +78,28 @@ dateInput.addEventListener('change', async function() {
     dateAlert.style.display = 'none';
 
     try {
-        // 1. Verifica se há EXCEÇÃO (Folga ou Config Específica)
         const docRef = doc(db, "disponibilidade", data);
         const docSnap = await getDoc(docRef);
 
         let horaInicio = "08:00";
         let horaFim = "18:00";
-        let localDia = "Camaçari - BA"; // Local padrão se nada for definido
+        let localDia = "Camaçari - BA"; 
 
-        // Se o cliente escolheu Feira, assumimos que o padrão pra ele é Feira se não houver bloqueio?
-        // Para simplificar: Padrão é aberto. Se houver config, respeita a config.
-        // Se NÃO houver config, assumimos que ela atende na cidade do cliente (lógica "todos os dias livres") 
-        // ou definimos um local padrão fixo. O user pediu "dia que ela vai estar em Feira".
-        // Lógica Adotada: Se não tem config, está livre na cidade escolhida (flexibilidade total).
-        
+        // Se existir uma configuração (Exceção)
         if (docSnap.exists()) {
             const infoDia = docSnap.data();
             
-            // Se for folga, bloqueia tudo
             if (infoDia.tipo === 'folga') {
                 msgErro("Agenda fechada para este dia (Folga).");
                 timeSlot.innerHTML = '<option>Indisponível</option>';
                 return;
             }
 
-            // Se for trabalho personalizado
             if (infoDia.tipo === 'trabalho') {
                 horaInicio = infoDia.inicio;
                 horaFim = infoDia.fim;
                 localDia = infoDia.local;
 
-                // Verifica se a cidade bate
                 if (localDia !== cidadeCliente) {
                     msgErro(`Nesta data estarei atendendo em ${localDia}.`);
                     timeSlot.innerHTML = '<option>Outra Cidade</option>';
@@ -117,9 +107,12 @@ dateInput.addEventListener('change', async function() {
                 }
             }
         } 
-        // Se NÃO existe doc, assume dia normal (08-18h) na cidade que o cliente escolheu.
-
-        // 2. Busca agendamentos já feitos nesse dia
+        
+        // Se NÃO tem config, assume padrão (Livre).
+        // Aqui está o pulo do gato: Se não tem config, consideramos livre na cidade escolhida.
+        // Assim, se o cliente é de Camaçari e não tem config, está livre.
+        // Se o cliente é de Feira e não tem config, também está livre (flexibilidade total).
+        
         const q = query(collection(db, "agendamentos"), where("data", "==", data), where("status", "==", "agendado"));
         const querySnapshot = await getDocs(q);
 
@@ -152,7 +145,7 @@ dateInput.addEventListener('change', async function() {
                 htmlOpcoes += '<option value="08:00" data-periodo="dia_todo">08:00 (Dia Inteiro)</option>';
                 temVaga = true;
             } else {
-                if(!permiteDiaTodo) msgErro("Horário reduzido neste dia (não cabe serviço longo).");
+                if(!permiteDiaTodo) msgErro("Horário reduzido neste dia.");
                 else msgErro("Dia requer manhã e tarde livres.");
             }
         } else {
