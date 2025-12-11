@@ -86,15 +86,15 @@ function iniciarCalendarioPrincipal() {
         initialView: 'dayGridMonth',
         locale: 'pt-br',
         height: 'auto',
-        dayMaxEvents: false, // Permite que a célula cresça para caber texto
+        dayMaxEvents: false, // Permite crescer
         headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,listWeek' },
         
         eventContent: function(arg) {
             let icone = arg.event.extendedProps.pixConfirmado ? "✅" : "";
-            // Estrutura HTML simplificada para o CSS novo agir
+            // Removida a lógica de cores inline
             return {
                 html: `
-                    <div class="evento-tag" style="${arg.event.extendedProps.pixConfirmado ? 'border-left-color: #10b981;' : ''}">
+                    <div class="evento-tag">
                         <div class="evento-hora">${arg.event.extendedProps.horario}</div>
                         <div class="evento-nome">${icone} ${arg.event.extendedProps.cliente}</div>
                     </div>
@@ -154,7 +154,7 @@ function iniciarCalendarioHistorico() {
                         id: doc.id,
                         title: `✅ ${dados.cliente}`,
                         start: `${dados.data}T${dados.horario}`,
-                        backgroundColor: '#3b82f6', borderColor: '#3b82f6',
+                        // Removemos backgroundColor fixo aqui também, o CSS cuida
                         extendedProps: { ...dados, docStatus: 'concluido' }
                     });
                 });
@@ -331,17 +331,15 @@ window.carregarConfiguracoes = async function() {
         const dataBR = new Date(d.data + "T00:00:00").toLocaleDateString('pt-BR');
         
         let info = "";
-        let borderClass = "";
         
         if (d.tipo === 'folga') {
-            info = `<span style="color:#ef4444; font-weight:bold;">⛔ FOLGA (Fechado)</span>`;
-            borderClass = "border-left: 4px solid #ef4444;";
+            info = `<span style="color:#ef4444; font-weight:bold;">⛔ FOLGA</span>`;
         } else {
             info = `<span style="color:#3b82f6;">📍 ${d.local} | 🕒 ${d.inicio} - ${d.fim}</span>`;
-            borderClass = "border-left: 4px solid #3b82f6;";
         }
 
-        html += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center; ${borderClass}">
+        // Removi o estilo inline de border-left
+        html += `<div class="admin-card" style="display:flex; justify-content:space-between; align-items:center;">
             <div><h4 style="color:#fff; margin-bottom:5px;">${dataBR}</h4>${info}</div>
             <button onclick="removerConfig('${doc.id}')" class="btn-cancelar" style="width:auto;">Remover</button>
         </div>`;
