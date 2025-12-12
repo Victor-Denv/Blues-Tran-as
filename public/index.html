@@ -17,7 +17,7 @@
     <div class="hero-content">
         <div class="logo-container">
             <img src="logo_blues.jpeg" alt="Logo Blues" class="hero-logo-img">
-            <h2 class="hero-subtitle">AFROTRANCAS</h2>
+            <h2 class="hero-subtitle">AFROTRANÇAS</h2>
         </div>
         
         <button onclick="abrirModal()" class="btn-consultar">🔎 Ver meus Agendamentos</button>
@@ -52,34 +52,54 @@
                 <label class="step-title"><span class="material-icons">face</span> Escolha o Estilo</label>
                 <div class="custom-select-wrapper">
                     <select id="serviceSelect">
-                        <option value="0" data-tipo="">Selecione o estilo...</option>
-                        <optgroup label="Nagô Simples & Masculina (~3h)">
-                            <option value="40" data-tipo="curto">Nagô Lateral (Fem) - R$ 40,00</option>
-                            <option value="50" data-tipo="curto">Nagô Tiara (Fem) - R$ 50,00</option>
-                            <option value="35" data-tipo="curto">Nagô Topo (Fem) - R$ 35,00</option>
-                            <option value="95" data-tipo="curto">Nagô Masc. c/ Jumbo - R$ 95,00</option>
-                            <option value="80" data-tipo="curto">Nagô Masc. s/ Jumbo - R$ 80,00</option>
-                            <option value="95" data-tipo="curto">Boxeadora (2 tranças) - R$ 95,00</option>
-                        </optgroup>
-                        <optgroup label="Nagô Desenhada / Complexa (6h+)">
-                            <option value="160" data-tipo="longo">Ghanna c/ Jumbo - R$ 160,00</option>
-                            <option value="90" data-tipo="curto">Ghanna s/ Jumbo (Rápida) - R$ 90,00</option>
-                            <option value="180" data-tipo="longo">Mohawk Braids (Moicano) - R$ 180,00</option>
-                            <option value="180" data-tipo="longo">Fulani Braids - R$ 180,00</option>
-                        </optgroup>
-                        <optgroup label="Tranças Soltas (Dia Inteiro)">
-                            <option value="190" data-tipo="longo">Box Braids (Com nó) - R$ 190,00</option>
-                            <option value="190" data-tipo="longo">Knotless Braids (Sem nó) - R$ 190,00</option>
-                            <option value="160" data-tipo="longo">Chanel - R$ 160,00</option>
-                            <option value="200" data-tipo="longo">Gipsy / Goddess Braids - R$ 200,00</option>
-                        </optgroup>
-                        <optgroup label="Locs & Outros">
-                            <option value="85" data-tipo="curto">Manutenção Locs (Retwist) - R$ 85,00</option>
-                            <option value="90" data-tipo="curto">Twist / Start Locs -  A Patir de R$ 90,00</option>
-                            <option value="130" data-tipo="longo">Faux Locs Individuais - R$ 130,00</option>
-                            <option value="180" data-tipo="longo">Entrelace - R$ 180,00</option>
-                            <option value="130" data-tipo="curto">Crochet Braids - R$ 130,00</option>
-                        </optgroup>
+    <option value="0" data-tipo="">Selecione o estilo...</option>
+    
+    <optgroup label="Nagô Simples & Masculina (~3h)">
+        <option value="43" data-tipo="curto">Nagô Lateral (Fem) - R$ 43,00</option>
+        
+        <option value="53" data-tipo="curto">Nagô Tiara (Fem) - R$ 53,00</option>
+        
+        <option value="37" data-tipo="curto">Nagô Topo (Fem) - R$ 37,00</option>
+        
+        <option value="100" data-tipo="curto">Nagô Masc. c/ Jumbo - R$ 100,00</option>
+        
+        <option value="85" data-tipo="curto">Nagô Masc. s/ Jumbo - R$ 85,00</option>
+        
+        <option value="100" data-tipo="curto">Boxeadora (2 tranças) - R$ 100,00</option>
+    </optgroup>
+
+    <optgroup label="Nagô Desenhada / Complexa (6h+)">
+        <option value="170" data-tipo="longo">Ghanna c/ Jumbo - R$ 170,00</option>
+        
+        <option value="95" data-tipo="curto">Ghanna s/ Jumbo (Rápida) - R$ 95,00</option>
+        
+        <option value="190" data-tipo="longo">Mohawk Braids (Moicano) - R$ 190,00</option>
+        
+        <option value="190" data-tipo="longo">Fulani Braids - R$ 190,00</option>
+    </optgroup>
+
+    <optgroup label="Tranças Soltas (Dia Inteiro)">
+        <option value="200" data-tipo="longo">Box Braids (Com nó) - R$ 200,00</option>
+        
+        <option value="200" data-tipo="longo">Knotless Braids (Sem nó) - R$ 200,00</option>
+        
+        <option value="170" data-tipo="longo">Chanel - R$ 170,00</option>
+        
+        <option value="211" data-tipo="longo">Gipsy / Goddess Braids - R$ 211,00</option>
+    </optgroup>
+
+    <optgroup label="Locs & Outros">
+        <option value="90" data-tipo="curto">Manutenção Locs (Retwist) - R$ 90,00</option>
+        
+        <option value="95" data-tipo="curto">Twist / Start Locs - A Partir de R$ 95,00</option>
+        
+        <option value="137" data-tipo="longo">Faux Locs Individuais - R$ 137,00</option>
+        
+        <option value="190" data-tipo="longo">Entrelace - R$ 190,00</option>
+        
+        <option value="137" data-tipo="curto">Crochet Braids - R$ 137,00</option>
+    </optgroup>
+</select>
                     </select>
                 </div>
 
@@ -100,17 +120,39 @@
             </div>
 
             <div class="step id-hidden" id="paymentSection" style="display:none;">
-                <label class="step-title"><span class="material-icons">payments</span> Pagamento do Sinal</label>
+                <label class="step-title"><span class="material-icons">payments</span> Forma de Pagamento</label>
+                
                 <div class="summary-card">
                     <div class="price-row"><span>Valor Total:</span><span id="fullPrice" class="neon-text">R$ 0,00</span></div>
-                    <div class="total-row"><span>Sinal (30%):</span><span id="depositPrice" style="color: #25D366; font-weight: bold;">R$ 0,00</span></div>
-                    <div class="pix-note" style="margin-top: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                        <p style="font-size: 0.85rem; line-height: 1.5; color: #e2e8f0;">✨ <strong>Como funciona:</strong> O sinal garante sua vaga e <strong>já é descontado do valor total</strong>.</p>
-                        <p style="font-size: 0.8rem; margin-top: 8px; color: #94a3b8;">📅 <strong>Remarcação:</strong> Avise com antecedência para não perder o sinal.</p>
+                    <div class="total-row"><span>Sinal Mínimo (30%):</span><span id="depositPrice" style="color: #25D366; font-weight: bold;">R$ 0,00</span></div>
+                    
+                    <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                        <p style="color: #fff; margin-bottom: 12px; font-weight: 500;">Como deseja pagar?</p>
+                        
+                        <label style="display:flex; align-items:center; gap:12px; color:#e2e8f0; margin-bottom:10px; cursor:pointer; background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; transition: 0.3s;">
+                            <input type="radio" name="paymentType" value="total" checked style="width: 18px; height: 18px; accent-color: var(--neon-blue);">
+                            <div>
+                                <span style="display:block; font-weight:bold; font-size: 0.95rem;">Pagar Valor Total</span>
+                                <small style="color:#94a3b8; font-size: 0.8rem;">Quitar tudo agora via Pix/Cartão</small>
+                            </div>
+                        </label>
+                        
+                        <label style="display:flex; align-items:center; gap:12px; color:#e2e8f0; cursor:pointer; background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; transition: 0.3s;">
+                            <input type="radio" name="paymentType" value="sinal" style="width: 18px; height: 18px; accent-color: var(--neon-blue);">
+                            <div>
+                                <span style="display:block; font-weight:bold; font-size: 0.95rem;">Pagar Apenas Sinal (30%)</span>
+                                <small style="color:#94a3b8; font-size: 0.8rem;">Garanta a vaga pagando o mínimo</small>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="pix-note" style="margin-top: 15px;">
+                        <p style="font-size: 0.8rem; color: #cbd5e1;">ℹ️ Você será redirecionado para o pagamento seguro.</p>
                     </div>
                 </div>
             </div>
-            <button class="btn-whatsapp" id="btnSend" disabled>Verificar e Agendar</button>
+            
+            <button class="btn-whatsapp" id="btnSend" disabled>Confirmar e Pagar</button>
         </div>
     </div>
     
@@ -128,7 +170,7 @@
     </div>
     
     <footer class="main-footer">
-        <p>&copy; 2025 Blues Afrotrancas. Todos os direitos reservados.</p>
+        <p>&copy; 2025 Blues Afrotranças. Todos os direitos reservados.</p>
         <a href="admin.html" class="admin-link">Área Restrita</a>
     </footer>
     
