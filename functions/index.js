@@ -1,20 +1,15 @@
 /**
  * IMPORTANTE:
- * ESTE CÓDIGO TEM UM RISCO DE SEGURANÇA AO INJETAR O TOKEN DIRETAMENTE.
- * USE APENAS PARA TESTE. DEPOIS, REVERTA PARA O USO DE SECRETS.
- *
- * PARA FUNCIONAR:
- * Substitua 'SEU_TOKEN_DE_PRODUÇÃO_AQUI' pelo Access Token de PRODUÇÃO (APP_USR-...).
+ * Este código NÃO usa o sistema seguro de chaves (defineSecret).
+ * O token deve ser configurado como uma variável de ambiente (ex: process.env.MERCADO_PAGO_TOKEN)
+ * com o comando 'firebase functions:config:set mercadopago.token="SEU_TOKEN"'.
  */
 
 const {onRequest} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const mercadopago = require("mercadopago");
-const {defineSecret} = require("firebase-functions/params");
-
-// Define o segredo do Mercado Pago. (Mantemos esta linha, mas não a usaremos no teste)
-const MERCADO_PAGO_TOKEN = defineSecret("MERCADO_PAGO_TOKEN");
+// REMOVIDO: const {defineSecret} = require("firebase-functions/params"); 
 
 // Inicialização do Firebase Admin
 admin.initializeApp();
@@ -24,8 +19,7 @@ admin.initializeApp();
 // =========================================================================
 exports.criarPagamentoMP = onRequest({
     region: 'us-central1',
-    // Não precisamos dos segredos, mas vamos mantê-los por precaução
-    secrets: [MERCADO_PAGO_TOKEN] 
+    // REMOVIDO: secrets: [MERCADO_PAGO_TOKEN] 
 }, async (request, response) => {
 
     if (request.method !== 'POST') {
@@ -33,22 +27,18 @@ exports.criarPagamentoMP = onRequest({
         return;
     }
 
-    // ====================================================================
-    // 🚨 AQUI ESTÁ O CÓDIGO DE TESTE INSEGURO
-    // SUBSTITUA 'SEU_TOKEN_DE_PRODUÇÃO_AQUI' PELO TOKEN APP_USR- CORRETO
-    // ====================================================================
-    const ACCESS_TOKEN_INSEGURO = 'APP_USR-1799892045705276-121116-a94d7f567e331b8ede5fdb63b6593084-2406218767'; 
+    // LENDO O TOKEN DA VARIÁVEL DE AMBIENTE PADRÃO
+    const accessToken = process.env.MERCADO_PAGO_TOKEN; 
     mercadopago.configure({
-        access_token: ACCESS_TOKEN_INSEGURO,
+        access_token: accessToken,
     });
-    // ====================================================================
-
+    
     const body = request.body;
 
     const URL_BASE = "https://blues-afrotrancas.web.app";
     const URL_WEBHOOK = "https://us-central1-blues-afrotrancas.cloudfunctions.net/receberNotificacaoMP";
     
-    // Definição da preferência de pagamento (agora usando o array 'items' do frontend)
+    // Definição da preferência de pagamento (espera o array 'items' formatado do frontend)
     const preference = {
         items: body.items, // Recebemos o array 'items' formatado do script.js
         back_urls: {
@@ -58,13 +48,22 @@ exports.criarPagamentoMP = onRequest({
         },
         auto_return: "approved",
         notification_url: URL_WEBHOOK,
-        external_reference: body.agendamentoId // Passa o ID do agendamento para o Webhook
+        external_reference: body.agendamentoId 
     };
+    
+    // 🚨 NOVO LOG CRÍTICO PARA DEBUG:
+    logger.info("Tentativa de Pagamento Recebida - Detalhes:", { 
+        TokenUsado: accessToken ? accessToken.substring(0, 10) + '...' : 'TOKEN VAZIO',
+        ItemsEnviados: body.items,
+        AgendamentoID: body.agendamentoId 
+    });
+    // ------------------------------------
 
     try {
         const result = await mercadopago.preferences.create(preference);
         response.status(200).send(result.body);
     } catch (error) {
+        // Esta linha agora registrará o erro exato do Mercado Pago
         logger.error("Erro ao criar preferência de pagamento:", error);
         response.status(500).send({
             error: error.message || "Erro interno no servidor.",
@@ -79,14 +78,14 @@ exports.criarPagamentoMP = onRequest({
 // =========================================================================
 exports.receberNotificacaoMP = onRequest({
     region: 'us-central1',
-    secrets: [MERCADO_PAGO_TOKEN] 
+    // REMOVIDO: secrets: [MERCADO_PAGO_TOKEN] 
 }, async (request, response) => {
     
-    // Usamos o token seguro aqui, pois esta função não está em teste
-    const accessToken = MERCADO_PAGO_TOKEN.value();
+    const accessToken = process.env.MERCADO_PAGO_TOKEN; // LENDO O TOKEN DA VARIÁVEL DE AMBIENTE PADRÃO
     mercadopago.configure({
         access_token: accessToken,
     });
+    
     
     const topic = request.query.topic || request.query.type;
     const id = request.query.id || request.query['data.id'];

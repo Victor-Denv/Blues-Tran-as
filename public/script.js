@@ -7,6 +7,7 @@ const fApp = initializeApp(cF);
 const fDb = getFirestore(fApp);
 const fFns = getFunctions(fApp);
 const N_WPP = "557581079652"; 
+ const URL_CRIAR_PAGAMENTO = "https://us-central1-blues-afrotrancas.cloudfunctions.net/criarPagamentoMP"; 
 
 const sS = document.getElementById('serviceSelect');
 const iD = document.getElementById('dateInput');
@@ -189,6 +190,7 @@ bS.addEventListener('click', async function() {
 
     // Usando as variáveis do DOM
     const tP = document.querySelector('input[name="paymentType"]:checked').value;
+    // O input 'payMethod' não existe no HTML fornecido, então 'mP' será 'pix'
     const mPInput = document.querySelector('input[name="payMethod"]:checked');
     const mP = mPInput ? mPInput.value : 'pix'; 
     
@@ -231,9 +233,7 @@ bS.addEventListener('click', async function() {
         }];
 
 
-        // 🚨 CÓDIGO CORRIGIDO: Chamada HTTP para a Função V2 com formatação de items
-        const URL_CRIAR_PAGAMENTO = "https://us-central1-blues-afrotrancas.cloudfunctions.net/criarPagamentoMP";
-
+        // Chamada HTTP para a Função V2 com formatação de items
         const response = await fetch(URL_CRIAR_PAGAMENTO, {
             method: 'POST',
             headers: {
