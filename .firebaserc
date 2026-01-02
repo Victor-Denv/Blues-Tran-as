@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "blues-afrotrancas"
-  }
+    "default": "blues-afrotrancas",
+    "novo": "blues-afrotrancas-v2"
+  },
+  "targets": {},
+  "etags": {}
 }

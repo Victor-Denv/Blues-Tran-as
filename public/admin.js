@@ -2,7 +2,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, getDocs, query, orderBy, where, doc, updateDoc, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const cF = { apiKey: "AIzaSyCQyjnobWfFqYttYOrQ3xoTRq5PutOi38A", authDomain: "blues-afrotrancas.firebaseapp.com", projectId: "blues-afrotrancas", storageBucket: "blues-afrotrancas.firebasestorage.app", messagingSenderId: "62126300208", appId: "1:62126300208:web:b6cfde8ea643faa9b5a1f5", measurementId: "G-GLYHSNHTG5" };
+const cF = { apiKey: "AIzaSyAyRO6BATvqvRJr2sCh-QFW4FoWh_1GBus",
+  authDomain: "blues-afrotrancas-v2.firebaseapp.com",
+  projectId: "blues-afrotrancas-v2",
+  storageBucket: "blues-afrotrancas-v2.firebasestorage.app",
+  messagingSenderId: "917785952384",
+  appId: "1:917785952384:web:35f8ee3acfeb320ff7a665",
+  measurementId: "G-4YS5GP0626" };
 
 const fApp = initializeApp(cF);
 const fDb = getFirestore(fApp);
